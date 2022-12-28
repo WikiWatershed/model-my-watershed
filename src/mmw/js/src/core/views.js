@@ -664,24 +664,50 @@ var MapView = Marionette.ItemView.extend({
             additionalShapes = this.model.get('areaOfInterestAdditionals');
 
         if (additionalShapes) {
-            _.forEach(additionalShapes.features, function(geoJSONpoint) {
-                var newLayer = L.geoJson(geoJSONpoint, {
-                    pointToLayer: function(feature, latLngForPoint) {
-                        var customIcon = feature.properties.original ?
-                            drawUtils.createRwdMarkerIcon('original-point') :
-                            drawUtils.createRwdMarkerIcon('nearest-stream-point');
-                        return L.marker(latLngForPoint, { icon: customIcon });
-                    },
-                    onEachFeature: function(feature, layer) {
-                        var popupMessage = feature.properties.original ?
-                            "Original clicked outlet point" :
-                            "Outlet point snapped to nearest stream";
-                        layer.bindPopup(popupMessage);
-                    }
-                });
+            if (additionalShapes.id === drawUtils.RWD) {
+                _.forEach(additionalShapes.features, function(geoJSONpoint) {
+                    var newLayer = L.geoJson(geoJSONpoint, {
+                        pointToLayer: function(feature, latLngForPoint) {
+                            var customIcon = feature.properties.original ?
+                                drawUtils.createRwdMarkerIcon('original-point') :
+                                drawUtils.createRwdMarkerIcon('nearest-stream-point');
+                            return L.marker(latLngForPoint, { icon: customIcon });
+                        },
+                        onEachFeature: function(feature, layer) {
+                            var popupMessage = feature.properties.original ?
+                                "Original clicked outlet point" :
+                                "Outlet point snapped to nearest stream";
+                            layer.bindPopup(popupMessage);
+                        }
+                    });
 
-                self._areaOfInterestLayer.addLayer(newLayer);
-            });
+                    self._areaOfInterestLayer.addLayer(newLayer);
+                });
+            }
+
+            if (additionalShapes.id === drawUtils.POINT) {
+                _.forEach(additionalShapes.features, function(geoJSONpoint) {
+                    var newLayer = L.geoJson(geoJSONpoint, {
+                        pointToLayer: function(feature, latLngForPoint) {
+                            var customIcon = drawUtils.createRwdMarkerIcon('original-point');
+                            return L.marker(latLngForPoint, { icon: customIcon });
+                        },
+                    });
+
+                    self._areaOfInterestLayer.addLayer(newLayer);
+                });
+            }
+
+            if (additionalShapes.id === drawUtils.STREAM) {
+                _.forEach(additionalShapes.features, function(geoJSONstream) {
+                    var newLayer = L.geoJson(geoJSONstream, {
+                        // Same color as .marker-rwd-original-point
+                        style: { color: '#8e44ad' },
+                    });
+
+                    self._areaOfInterestLayer.addLayer(newLayer);
+                });
+            }
         }
     },
 

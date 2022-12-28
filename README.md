@@ -40,9 +40,22 @@ Ensure you have the [vagrant-disksize](https://github.com/sprotheroe/vagrant-dis
 $ vagrant plugin install vagrant-disksize
 ```
 
-Next, use the following command to bring up a local development environment:
+Starting with Virtualbox 6.1.28, [host-only networks](https://www.virtualbox.org/manual/ch06.html#network_hostonly) are restricted to `192.168.56.0/21` by default. 
+
+We will need to do the following to override this restriction:
 
 ```bash
+sudo mkdir /etc/vbox
+
+echo "
+* 192.168.56.0/21
+* 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
+```
+
+Next, use the following command to bring up a local development environment, ensuring you have the most recent version of the base box:
+
+```bash
+$ vagrant box update
 $ vagrant up
 ```
 

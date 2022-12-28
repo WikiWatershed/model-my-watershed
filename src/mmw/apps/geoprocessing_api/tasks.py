@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
+import json
 import logging
 from urllib.parse import urlencode
 
 from ast import literal_eval as make_tuple
 from calendar import month_name
+from functools import reduce
 
 from celery import shared_task
 
 import requests
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.core.cache import cache
 
 from mmw.settings import layer_classmaps
@@ -20,6 +23,7 @@ from apps.modeling.tr55.utils import aoi_resolution
 
 from apps.modeling.tasks import run_gwlfe
 
+from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import (NOCACHE,
                                          collect_data,
                                          convert_data,
@@ -508,3 +512,75 @@ def collect_worksheet(area_of_interest):
         }
 
     return collection
+
+
+@shared_task(time_limit=300)
+def draw_drainage_area_point(input):
+    """
+    Given a JSON geometry of a point, makes a request to the Drexel / ANS
+    Drainage Area API and returns the area of interest and it's corresponding
+    Land Use Summary.
+    """
+    # Parse the input and ensure it is a valid point, raising errors
+
+    # Send a request to the Drexel / ANS API to get the drainage area,
+    # raising errors if the API cannot be reached or errors out
+
+    # Validate the response and raise errors, if any
+
+    # Return the valid response
+
+    # TODO Replace this test code with actual implementation described above
+    point = GEOSGeometry(json.dumps(input['geometry']))
+    box = json.loads(MultiPolygon(point.buffer(0.01), srid=4326).geojson)
+    area_of_interest = {
+        'type': 'Feature',
+        'properties': {
+            'drainage_area': True,
+        },
+        'geometry': box,
+    }
+
+    return {
+        'area_of_interest': area_of_interest,
+        'point': json.loads(point.geojson),
+    }
+
+
+@shared_task(time_limit=300)
+def draw_drainage_area_stream(input):
+    # Parse the input and ensure it is a valid polygon, raising errors if not
+
+    # Send a request to the Drexel / ANS API to get the drainage area,
+    # raising errors if the API cannot be reached or errors out
+
+    # Validate the response and raise errors, if any
+
+    # Return the valid response
+
+    # TODO Replace this test code with actual implementation described above
+    def union(collection, line):
+        return collection.union(line)
+
+    polygon = GEOSGeometry(json.dumps(input['geometry']))
+
+    # Ensure it intersects with a stream section, raising errors if not
+    stream_lines = [GEOSGeometry(s) for s in streams(polygon.geojson)]
+    if not stream_lines:
+        raise Exception('No streams within given shape.')
+
+    segment = reduce(union, stream_lines[1:], stream_lines[0])
+
+    box = json.loads(MultiPolygon(segment.buffer(0.01), srid=4326).geojson)
+    area_of_interest = {
+        'type': 'Feature',
+        'properties': {
+            'drainage_area': True,
+        },
+        'geometry': box,
+    }
+
+    return {
+        'area_of_interest': area_of_interest,
+        'stream_segment': json.loads(segment.geojson),
+    }

@@ -103,8 +103,9 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             var isWkaoi = utils.isWKAoIValid(wkaoi),
                 taskHelper = {
                     contentType: 'application/json',
-                    queryParams: isWkaoi ? { wkaoi: wkaoi } : null,
-                    postData: isWkaoi ? null : JSON.stringify(aoi)
+                    postData: isWkaoi ? 
+                        JSON.stringify({ wkaoi : wkaoi }) : 
+                        JSON.stringify({ area_of_interest : aoi })
                 },
                 promises = self.start(taskHelper);
 

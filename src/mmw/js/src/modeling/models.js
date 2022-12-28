@@ -57,45 +57,25 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
     )
 });
 
-var MapshedTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.MAPSHED,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+function makeModelingTaskModel(taskName) {
+    return coreModels.TaskModel.extend({
+        defaults: _.extend(
+            {
+                taskName: 'modeling/' + taskName,
+                taskType: 'api',
+                token: settings.get('api_token'),
+            },
+            coreModels.TaskModel.prototype.defaults),
+    });
+}
 
-var GwlfeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.GWLFE,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var MapshedTaskModel = makeModelingTaskModel('gwlf-e/prepare');
 
-var SubbasinMapshedTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.MAPSHED,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var GwlfeTaskModel = makeModelingTaskModel('gwlf-e/run');
 
-var SubbasinGwlfeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.GWLFE,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var SubbasinMapshedTaskModel = makeModelingTaskModel('subbasin/prepare');
+
+var SubbasinGwlfeTaskModel = makeModelingTaskModel('subbasin/run');
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
@@ -572,20 +552,16 @@ var ProjectModel = Backbone.Model.extend({
                 aoi_param = utils.isWKAoIValid(wkaoi) ?
                     { 'wkaoi': wkaoi } :
                     { 'area_of_interest': aoi },
-                mapshedInput = JSON.stringify(
-                    _.extend({
+                postData =_.extend({
                         layer_overrides: this.get('layer_overrides'),
-                    }, aoi_param)),
-                queryParams = isSubbasinMode ? { subbasin: true } : null,
+                    }, aoi_param),
                 taskModel = isSubbasinMode ?
                     createSubbasinTaskModel(utils.MAPSHED) :
                     createTaskModel(utils.MAPSHED),
                 taskHelper = {
-                    postData: {
-                        mapshed_input: mapshedInput
-                    },
+                    postData: JSON.stringify(postData),
 
-                    queryParams: queryParams,
+                    contentType: 'application/json',
 
                     onStart: function() {
                         console.log(isSubbasinMode ?
@@ -1459,11 +1435,12 @@ var ScenarioModel = Backbone.Model.extend({
             results = this.get('results'),
             taskModel = this.get('taskModel'),
             gisData = this.getGisData(isSubbasinMode),
-            queryParams = isSubbasinMode ? { subbasin: true } : null,
             taskHelper = {
-                postData: gisData,
+                postData: JSON.stringify(gisData),
 
-                queryParams: queryParams,
+                contentType: 'application/json',
+
+                taskName: isSubbasinMode ? 'modeling/subbasin/run' : null,
 
                 onStart: function() {
                     console.log(isSubbasinMode ?
@@ -1694,7 +1671,7 @@ var ScenarioModel = Backbone.Model.extend({
                 }
 
                 return {
-                    model_input: JSON.stringify(modelInput)
+                    model_input: modelInput
                 };
 
             case utils.GWLFE:
@@ -1702,8 +1679,8 @@ var ScenarioModel = Backbone.Model.extend({
 
                 return {
                     inputmod_hash: self.get('inputmod_hash'),
-                    modifications: JSON.stringify(modifications),
-                    mapshed_job_uuid: isSubbasinMode ?
+                    modifications: modifications,
+                    job_uuid: isSubbasinMode ?
                         project.get('subbasin_mapshed_job_uuid') :
                         project.get('mapshed_job_uuid'),
                     layer_overrides: project.get('layer_overrides'),

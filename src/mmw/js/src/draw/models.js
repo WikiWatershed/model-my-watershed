@@ -2,6 +2,7 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('jquery'),
+    drawUtils = require('./utils'),
     settings = require('../core/settings'),
     coreModels = require('../core/models');
 
@@ -60,7 +61,25 @@ var RwdTaskModel = coreModels.TaskModel.extend({
     )
 });
 
+var DrainageAreaPointModel = coreModels.TaskModel.extend({
+    defaults: _.extend({
+        taskName: 'draw/drainage-area/' + drawUtils.POINT,
+        taskType: 'api',
+        token: settings.get('api_token')
+    }, coreModels.TaskModel.prototype.defaults),
+});
+
+var DrainageAreaStreamModel = coreModels.TaskModel.extend({
+    defaults: _.extend({
+        taskName: 'draw/drainage-area/' + drawUtils.STREAM,
+        taskType: 'api',
+        token: settings.get('api_token')
+    }, coreModels.TaskModel.prototype.defaults),
+});
+
 module.exports = {
     ToolbarModel: ToolbarModel,
-    RwdTaskModel: RwdTaskModel
+    RwdTaskModel: RwdTaskModel,
+    DrainageAreaPointModel: DrainageAreaPointModel,
+    DrainageAreaStreamModel: DrainageAreaStreamModel,
 };

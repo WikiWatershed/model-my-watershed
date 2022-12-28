@@ -37,8 +37,12 @@ class MultiPolygonGeoJsonField(JsonField):
         """
         if data == '' or data is None:
             return data
+
         if isinstance(data, str):
-            data = json.loads(data)
+            try:
+                data = json.loads(data)
+            except Exception:
+                raise ValidationError('Area of interest must be valid JSON')
 
         geometry = data
 
@@ -233,6 +237,10 @@ class AoiSerializer(serializers.BaseSerializer):
         if (wkaoi and not aoi):
             try:
                 table, id = wkaoi.split('__')
+
+                if not table or not id:
+                    raise ValidationError(
+                        'wkaoi must be of the form table__id')
             except Exception:
                 raise ValidationError('wkaoi must be of the form table__id')
 

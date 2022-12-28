@@ -48,10 +48,10 @@ To confirm, you can login to the Model my Watershed "production" account and see
 Ensure that the `production` section of `default.yml` reflects the desired state of your new stack (instance types, instance counts, etc.). Then, launch a new stack using the opposite color that is currently deployed:
 
 ```bash
-$ ./mmw_stack.py launch-stacks --aws-profile mmw-prd \
-                               --mmw-config-path default.yml \
-                               --mmw-profile production \
-                               --stack-color blue
+python3 mmw_stack.py launch-stacks --aws-profile mmw-prd \
+                                   --mmw-config-path default.yml \
+                                   --mmw-profile production \
+                                   --stack-color blue
 ```
 
 This will launch a new `Tiler`, `Application`, and `Worker` stack namespaced by `stack-color`.
@@ -71,11 +71,11 @@ Using the newly created ELB endpoint, try to interact with the dark application 
 If everything looks good, use the following command to cut over DNS to the new ELB endpoint:
 
 ```bash
-$ ./mmw_stack.py launch-stacks --aws-profile mmw-prd \
-                               --mmw-config-path default.yml \
-                               --mmw-profile production \
-                               --stack-color blue \
-                               --activate-dns
+python3 mmw_stack.py launch-stacks --aws-profile mmw-prd \
+                                   --mmw-config-path default.yml \
+                                   --mmw-profile production \
+                                   --stack-color blue \
+                                   --activate-dns
 ```
 
 Within 60 seconds, `modelmywatershed.org` and `portal.bigcz.org` should reflect the current release.
@@ -87,13 +87,10 @@ Disable the `release` job in Jenkins, and enable the `develop` job:
 - http://civicci01.internal.azavea.com/view/mmw/job/model-my-watershed-develop/
 - http://civicci01.internal.azavea.com/view/mmw/job/model-my-watershed-release/
 
-Execute the following commands to reconcile the release branch:
+Execute the following command to reconcile the release branch:
 
 ```bash
-$ git flow release finish X.Y.Z
-$ git push origin develop
-$ git checkout master && git push origin master
-$ git push --tags
+git flow release finish -p X.Y.Z
 ```
 
 ## Remove Old Stack
@@ -101,8 +98,8 @@ $ git push --tags
 Lastly, use the following command to remove the now dark stack:
 
 ```bash
-$ ./mmw_stack.py remove-stacks --aws-profile mmw-prd \
-                               --mmw-config-path default.yml \
-                               --mmw-profile production \
-                               --stack-color green
+python3 mmw_stack.py remove-stacks --aws-profile mmw-prd \
+                                   --mmw-config-path default.yml \
+                                   --mmw-profile production \
+                                   --stack-color green
 ```

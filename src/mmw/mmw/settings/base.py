@@ -327,12 +327,13 @@ SWAGGER_SETTINGS = {
         'Do not use the Django Login / Logout buttons. This API uses Token Authentication only. '  # NOQA
         '</p>'
         '<p>'
-        'All <strong>analyze</strong> endpoints take <em>either</em> a MultiPolygon request body <em>or</em> a well-known area of interest query parameter <em>or</em> a HUC query parameter. '  # NOQA
+        'All <strong>analyze</strong> endpoints take a JSON request body which has <em>one of</em> an <code>area_of_interest</code> key with a MultiPolygon GeoJSON value <em>or</em> a well-known area of interest <code>wkaoi</code> <em>or</em> a Hydrologic Unit Code <code>huc</code>. '  # NOQA
         'The shape of their result object is documented individually. '
         '</p>'
         '<p>'
-        'All <strong>analyze</strong> and <strong>watershed</strong> endpoints return a <strong>Job Started Response</strong> on success. '  # NOQA
-        'This response has a <code>job</code> value, as well as a <code>Location</code> header, either of which can be used with the <strong>jobs</strong> endpoint to get the result. '  # NOQA
+        'All <strong>analyze</strong>, <strong>modeling</strong>, and <strong>watershed</strong> endpoints return a <strong>Job Started Response</strong> on success. '  # NOQA
+        'This response has a <code>job_uuid</code> value, as well as a <code>Location</code> header, either of which can be used with the <strong>jobs</strong> endpoint to get the result. '  # NOQA
+        'This may also include a <code>messages</code> key, which has an array of messages for the API user, such as deprecation warnings and upcoming changes.'  # NOQA
         '</p>'
         '<p>'
         'The <strong>jobs</strong> endpoint has a <code>status</code> key, whose value is either <strong>started</strong>, <strong>complete</strong>, or <strong>failed</strong>. '  # NOQA
@@ -988,7 +989,7 @@ MODEL_PACKAGES = [
                        'SLAMM, TR-55, and EPA\'s STEP-L model algorithms. '
                        'Designed primarily for use with smaller, more '
                        'developed areas.',
-        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',  # NOQA
     },
     {
         'name': GWLFE,
@@ -996,7 +997,7 @@ MODEL_PACKAGES = [
         'description': 'Simulates 30-years of daily data by the GWLF-E '
                        '(MapShed) model. Designed primarily for use with '
                        'larger, more rural areas.',
-        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',  # NOQA
     },
 ]
 

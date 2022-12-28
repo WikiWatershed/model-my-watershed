@@ -621,12 +621,12 @@ var TaskModel = Backbone.Model.extend({
         logger('[' + this.get('name') + '] ' + message);
     },
 
-    url: function(queryParams) {
+    url: function(taskName, queryParams) {
         var encodedQueryParams = queryParams ? '?' + $.param(queryParams) : '';
         if (this.get('job')) {
             return '/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
         } else {
-            return '/' + this.get('taskType') + '/' + this.get('taskName') + '/' + encodedQueryParams;
+            return '/' + this.get('taskType') + '/' + (taskName || this.get('taskName')) + '/' + encodedQueryParams;
         }
     },
 
@@ -666,7 +666,7 @@ var TaskModel = Backbone.Model.extend({
         }
         var self = this,
             startDefer = self.fetch({
-                url: self.url(taskHelper.queryParams),
+                url: self.url(taskHelper.taskName, taskHelper.queryParams),
                 method: 'POST',
                 data: taskHelper.postData,
                 contentType: taskHelper.contentType,

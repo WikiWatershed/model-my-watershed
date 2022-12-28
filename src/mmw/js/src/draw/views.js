@@ -27,6 +27,9 @@ var $ = require('jquery'),
 var selectBoundary = 'selectBoundary',
     drawArea = 'drawArea',
     delineateWatershed = 'delineateWatershed',
+    drainageArea = 'drainageArea',
+    drainagePoint = 'drainage-point',
+    drainageStream = 'drainage-stream',
     aoiUpload = 'aoiUpload',
     freeDraw = 'free-draw',
     squareKm = 'square-km',
@@ -172,6 +175,7 @@ var DrawWindow = Marionette.LayoutView.extend({
         selectBoundaryRegion: '#select-boundary-region',
         drawAreaRegion: '#draw-area-region',
         watershedDelineationRegion: '#watershed-delineation-region',
+        drainageAreaRegion: '#drainage-area-region',
         uploadFileRegion: '#upload-file-region'
     },
 
@@ -192,6 +196,8 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.model.set('outlineFeatureGroup', ofg);
         map.addLayer(ofg);
         this.rwdTaskModel = new models.RwdTaskModel();
+        this.drainageAreaPointModel = new models.DrainageAreaPointModel();
+        this.drainageAreaStreamModel = new models.DrainageAreaStreamModel();
     },
 
     onShow: function() {
@@ -225,6 +231,13 @@ var DrawWindow = Marionette.LayoutView.extend({
                 rwdTaskModel: this.rwdTaskModel
             })
         );
+
+        this.drainageAreaRegion.show(new DrainageAreaView({
+            model: this.model,
+            resetDrawingState: resetDrawingState,
+            drainageAreaPointModel: this.drainageAreaPointModel,
+            drainageAreaStreamModel: this.drainageAreaStreamModel,
+        }));
 
         this.uploadFileRegion.show(new AoIUploadView({
             model: this.model,
@@ -1022,6 +1035,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         var inputPoint = result.input_pt,
             inputPoints = {
                 type: "FeatureCollection",
+                id: drawUtils.RWD,
                 features: [inputPoint]
             };
 
@@ -1047,6 +1061,192 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         addLayer(result.watershed, itemName);
 
         return result;
+    }
+});
+
+var DrainageAreaView = DrawToolBaseView.extend({
+    initialize: function(options) {
+        DrawToolBaseView.prototype.initialize.call(this, options);
+        this.id = drainageArea;
+        this.drainageAreaPointModel = options.drainageAreaPointModel;
+        this.drainageAreaStreamModel = options.drainageAreaStreamModel;
+    },
+
+    getToolData: function() {
+        return {
+            id: this.id,
+            title: 'Drainage area',
+            info: 'Find the area that drains to a point or stream',
+            items: [
+                {
+                    id: drainagePoint,
+                    title: 'Point based',
+                    info: 'Click on the map to specify a drainage point, and an ' +
+                          'area draining to that point will be generated.<br />' +
+                          'See ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'our documentation on Drainage Area.</a>',
+                    minZoom: 0,
+                    directions: 'Click a point.'
+                },
+                {
+                    id: drainageStream,
+                    title: 'Stream based',
+                    info: 'Draw an area around a stream to select a segment of ' +
+                          'it, and an area draining to that stream segment will be ' +
+                          'generated.<br />' +
+                          'See ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'our documentation on Drainage Area.</a>',
+                    minZoom: 0,
+                    directions: 'Draw a boundary around a stream.'
+                }
+            ],
+        };
+    },
+
+    onClickItem: function(e) {
+        this.resetDrawingState();
+
+        var itemId = e.currentTarget.id;
+        switch (itemId) {
+            case drainagePoint:
+                this.enablePointSelection();
+                break;
+            case drainageStream:
+                this.enableStreamSelection();
+                break;
+        }
+
+        this.model.selectDrawToolItem(this.id, itemId);
+    },
+
+    enablePointSelection: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        utils.placeMarker(map).then(function(latlng) {
+            var point = L.marker(latlng).toGeoJSON();
+
+            return self.requestDrainageArea(drawUtils.POINT, point);
+        }).then(function(response) {
+            var additionalShapes = {
+                type: 'FeatureCollection',
+                id: drawUtils.POINT,
+                features: [response.point],
+            };
+
+            App.map.set('areaOfInterestAdditionals', additionalShapes);
+            addLayer(response.area_of_interest, 'Point-based Drainage Area');
+            navigateToAnalyze();
+            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
+        }).fail(function(message) {
+            revertLayer();
+            displayAlert(message, modalModels.AlertTypes.error);
+            self.model.reset();
+        });
+    },
+
+    enableStreamSelection: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        // Enable streams layer so user can draw a polygon around a stream
+        var streamLayerCode = 'nhd_streams_hr_v1',
+            collection = App.getLayerTabCollection(),
+            leafletMap = App.getLeafletMap(),
+            layer = collection.findLayerWhere({ code: streamLayerCode }),
+            group = collection.findLayerGroup(layer.get('layerType'));
+
+        if (!layer.get('active')) {
+            coreUtils.toggleLayer(layer, leafletMap, group);
+        }
+
+        utils.drawPolygon(map)
+            .then(validateShape)
+            .then(function(shape) {
+                return self.requestDrainageArea(drawUtils.STREAM, shape);
+            })
+            .then(function(response) {
+                var additionalShapes = {
+                    type: 'FeatureCollection',
+                    id: drawUtils.STREAM,
+                    features: [response.stream_segment],
+                };
+
+                App.map.set('areaOfInterestAdditionals', additionalShapes);
+                addLayer(response.area_of_interest, 'Stream-based Drainage Area');
+                navigateToAnalyze();
+                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
+            }).fail(function(message) {
+                revertLayer();
+                displayAlert(message, modalModels.AlertTypes.error);
+                self.model.reset();
+            });
+    },
+
+    // Start polling for a drainage area
+    // `type` should be one of "point" or "stream"
+    // `data` should be a GeoJSON point for "point", a GeoJSON polygon for "stream"
+    requestDrainageArea: function(type, data) {
+        var self = this,
+            deferred = $.Deferred(),
+            taskHelper = {
+                onStart: function() {
+                    self.model.set('polling', true);
+                },
+
+                startFailure: function(response) {
+                    self.model.set({
+                        pollError: true,
+                        polling: false,
+                    });
+                    
+                    var msg = 'Failed to request drainage area.';
+                    if (response.error) {
+                        msg += '<br /> Details: ' + response.error;
+                    }
+                    deferred.reject(msg);
+                },
+
+                pollSuccess: function(response) {
+                    self.model.set('polling', false);
+
+                    deferred.resolve(response.result);
+                },
+
+                pollFailure: function(response) {
+                    self.model.set({
+                        pollError: true,
+                        polling: false,
+                    });
+                    var msg = 'Drainage area could not be calculated.';
+                    if (response.error) {
+                        msg += '<br /> Details: ' + response.error;
+                    }
+                    deferred.reject(msg);
+                },
+
+                pollEnd: function() {
+                    self.model.set('polling', false);
+                },
+
+                postData: JSON.stringify(data),
+
+                contentType: 'application/json',
+            };
+
+        if (type === drawUtils.POINT) {
+            self.drainageAreaPointModel.start(taskHelper);
+        } else if (type === drawUtils.STREAM) {
+            self.drainageAreaStreamModel.start(taskHelper);
+        } else {
+            deferred.reject('Invalid drainage area type: ' + type);
+        }
+
+        return deferred;
     }
 });
 

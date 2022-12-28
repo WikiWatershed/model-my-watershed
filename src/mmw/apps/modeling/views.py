@@ -580,7 +580,11 @@ def start_tr55(request, format=None):
     user = request.user if request.user.is_authenticated else None
     created = now()
 
-    model_input = json.loads(request.POST['model_input'])
+    model_input = request.data.get('model_input')
+    if not model_input:
+        return Response('Missing model_input',
+                        status=status.HTTP_400_BAD_REQUEST)
+
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
     task_list = _initiate_tr55_job_chain(model_input, job.id)

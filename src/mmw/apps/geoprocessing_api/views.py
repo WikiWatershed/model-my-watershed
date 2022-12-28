@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 
+from operator import itemgetter
+
 from celery import chain
 
 from rest_framework.response import Response
@@ -8,7 +10,7 @@ from rest_framework import decorators, status
 from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 
@@ -24,20 +26,28 @@ from apps.core.tasks import (save_job_error,
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.calcs import apply_gwlfe_modifications
-from apps.modeling.tasks import run_gwlfe
+from apps.modeling.tasks import run_gwlfe, subbasin_results_to_dict
 from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import (collect_data,
+                                         collect_subbasin,
                                          convert_data,
                                          multi_mapshed,
+                                         multi_subbasin,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
+from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
+from apps.geoprocessing_api.calcs import huc12s_for_huc, huc12_for_point
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import validate_rwd
+from apps.geoprocessing_api.validation import (check_exactly_one_provided,
+                                               validate_rwd,
+                                               validate_uuid,
+                                               validate_gwlfe_prepare,
+                                               validate_gwlfe_run)
 
 
 @swagger_auto_schema(method='post',
@@ -244,10 +254,8 @@ def start_rwd(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.NLCD_YEAR,
-                                        schemas.WKAOI,
-                                        schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.NLCD_YEAR],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -416,7 +424,7 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -432,12 +440,11 @@ def start_analyze_land(request, nlcd_year, format=None):
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
                             layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -518,20 +525,19 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('soil', geop_input, wkaoi),
         tasks.analyze_soil.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.STREAM_DATASOURCE,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.STREAM_DATASOURCE],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -647,7 +653,7 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -662,12 +668,11 @@ def start_analyze_streams(request, datasource, format=None):
                             cache_key=datasource),
         nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest, datasource, wkaoi)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -737,16 +742,15 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -797,7 +801,7 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -805,8 +809,7 @@ def start_analyze_pointsource(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -884,16 +887,15 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -946,18 +948,17 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
         geoprocessing.multi.s('climate', shape, None),
         tasks.analyze_climate.s(wkaoi or geoprocessing.NOCACHE),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1012,19 +1013,18 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1148,20 +1148,19 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('protected_lands', geop_input, wkaoi),
         tasks.analyze_protected_lands.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.DRB_2100_LAND_KEY,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.DRB_2100_LAND_KEY],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE,
                                 400: schemas.DRB_2100_LAND_ERROR_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1316,7 +1315,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     errs = []
     if not key:
@@ -1342,11 +1341,324 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
 
     return start_celery_job([
         tasks.analyze_drb_2100_land.s(area_of_interest, key)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_drainage_area(request, format=None):
+    """
+    Starts a job to get a drainage area hydrology for given area.
+
+    Runs GWLF-E on the HUC-12 that contains this drainage area, calculated
+    via its centroid, and then scales the results to the land use of the
+    drainage area.
+    
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/).  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+          "meta":
+          {
+            "NYrs": 30,
+            "NRur": 10,
+            "NUrb": 6,
+            "NLU": 16,
+            "SedDelivRatio": 0.10329591514237264,
+            "WxYrBeg": 1961,
+            "WxYrEnd": 1990
+          },
+          "AreaTotal": 13483.099999999999,
+          "MeanFlow": 53702264.44135976,
+          "MeanFlowPerSecond": 1.7028876344926356,
+          "monthly":
+          [
+            {
+              "AvPrecipitation": 5.935980000000001,
+              "AvEvapoTrans": 0.3640651150606054,
+              "AvGroundWater": 2.415980542694388,
+              "AvRunoff": 2.0450296179817204,
+              "AvStreamFlow": 4.652982319512902,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 5.620596666666668,
+              "AvEvapoTrans": 0.5447986275074899,
+              "AvGroundWater": 2.862858613564621,
+              "AvRunoff": 2.532449353864494,
+              "AvStreamFlow": 5.568702175410736,
+              "AvPtSrcFlow": 0.1733942079816201,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.288866666666665,
+              "AvEvapoTrans": 1.9127442299891178,
+              "AvGroundWater": 4.086730876191852,
+              "AvRunoff": 2.589661518891096,
+              "AvStreamFlow": 6.868364553919741,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.886700000000001,
+              "AvEvapoTrans": 4.211447033345926,
+              "AvGroundWater": 3.852441756683534,
+              "AvRunoff": 1.6233684040299379,
+              "AvStreamFlow": 5.661589669265208,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.02716,
+              "AvEvapoTrans": 7.758601272279417,
+              "AvGroundWater": 2.6855549869745166,
+              "AvRunoff": 0.4060813333942047,
+              "AvStreamFlow": 3.283608479205515,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.713806666666668,
+              "AvEvapoTrans": 10.777498042140484,
+              "AvGroundWater": 1.4751431431687578,
+              "AvRunoff": 0.5816421838758978,
+              "AvStreamFlow": 2.242564835596392,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.989396666666668,
+              "AvEvapoTrans": 11.593721062439405,
+              "AvGroundWater": 0.6661877477937888,
+              "AvRunoff": 0.8152539126393926,
+              "AvStreamFlow": 1.673413819269975,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.285903333333334,
+              "AvEvapoTrans": 9.03076590143804,
+              "AvGroundWater": 0.2865799207156192,
+              "AvRunoff": 0.4201142751876688,
+              "AvStreamFlow": 0.8986663547400817,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.243993333333332,
+              "AvEvapoTrans": 5.765425020494629,
+              "AvGroundWater": 0.20079490532123093,
+              "AvRunoff": 0.4929207074944218,
+              "AvStreamFlow": 0.8794951213673886,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 6.307243333333332,
+              "AvEvapoTrans": 3.307483147726791,
+              "AvGroundWater": 0.42132342594922767,
+              "AvRunoff": 0.7008363758256483,
+              "AvStreamFlow": 1.3141319606116697,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.578089999999999,
+              "AvEvapoTrans": 1.6795306216051686,
+              "AvGroundWater": 0.6006275882877178,
+              "AvRunoff": 1.3259111531948593,
+              "AvStreamFlow": 2.112318250034313,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.458710000000001,
+              "AvEvapoTrans": 0.6766907152814289,
+              "AvGroundWater": 2.3147485239734436,
+              "AvRunoff": 2.1667573224257652,
+              "AvStreamFlow": 4.673478005236002,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            }
+          ],
+          "Loads":
+          [
+            {
+              "Source": "Hay/Pasture",
+              "Sediment": 5524.1197254487815,
+              "TotalN": 20.96423556471483,
+              "TotalP": 14.529152392929996
+            },
+            {
+              "Source": "Cropland",
+              "Sediment": 2866.725211058347,
+              "TotalN": 57.60388240862847,
+              "TotalP": 14.330044790332682
+            },
+            {
+              "Source": "Wooded Areas",
+              "Sediment": 2850.835069352931,
+              "TotalN": 135.18680640281562,
+              "TotalP": 11.54617681868244
+            },
+            {
+              "Source": "Wetlands",
+              "Sediment": 0.13506127130755424,
+              "TotalN": 0.021966952077695324,
+              "TotalP": 0.0013660824707702928
+            },
+            {
+              "Source": "Open Land",
+              "Sediment": 2862.306146808489,
+              "TotalN": 24.907408818598775,
+              "TotalP": 5.124074691225902
+            },
+            {
+              "Source": "Barren Areas",
+              "Sediment": 3.3585171802445153,
+              "TotalN": 6.3482575486352175,
+              "TotalP": 0.21695159700799732
+            },
+            {
+              "Source": "Low-Density Mixed",
+              "Sediment": 35133.947620364095,
+              "TotalN": 1016.380617046707,
+              "TotalP": 106.35252673942016
+            },
+            {
+              "Source": "Medium-Density Mixed",
+              "Sediment": 322398.99473830906,
+              "TotalN": 7285.073355291861,
+              "TotalP": 747.4625341104565
+            },
+            {
+              "Source": "High-Density Mixed",
+              "Sediment": 177887.7413473253,
+              "TotalN": 4019.6317788594556,
+              "TotalP": 412.42194952432857
+            },
+            {
+              "Source": "Low-Density Open Space",
+              "Sediment": 23899.004471251348,
+              "TotalN": 691.3679377495677,
+              "TotalP": 72.34369275945146
+            },
+            {
+              "Source": "Farm Animals",
+              "Sediment": 0,
+              "TotalN": 435.22179396903744,
+              "TotalP": 116.44851594069331
+            },
+            {
+              "Source": "Stream Bank Erosion",
+              "Sediment": 9765717,
+              "TotalN": 4627,
+              "TotalP": 4038
+            },
+            {
+              "Source": "Subsurface Flow",
+              "Sediment": 0,
+              "TotalN": 42729.26816394586,
+              "TotalP": 650.4301088992864
+            },
+            {
+              "Source": "Point Sources",
+              "Sediment": 0,
+              "TotalN": 2118.0,
+              "TotalP": 0.0
+            },
+            {
+              "Source": "Septic Systems",
+              "Sediment": 0,
+              "TotalN": 15214.245842399996,
+              "TotalP": 0.0
+            }
+          ],
+          "SummaryLoads":
+          [
+            {
+              "Source": "Total Loads",
+              "Unit": "kg",
+              "Sediment": 10339144.16790837,
+              "TotalN": 78381.22204695796,
+              "TotalP": 6189.207094346286
+            },
+            {
+              "Source": "Loading Rates",
+              "Unit": "kg/ha",
+              "Sediment": 766.8224790966744,
+              "TotalN": 5.813293830569971,
+              "TotalP": 0.4590344278649781
+            },
+            {
+              "Source": "Mean Annual Concentration",
+              "Unit": "mg/l",
+              "Sediment": 192.52715458950917,
+              "TotalN": 1.45955152659431,
+              "TotalP": 0.11525039323257211
+            },
+            {
+              "Source": "Mean Low-Flow Concentration",
+              "Unit": "mg/l",
+              "Sediment": 303.15693688123486,
+              "TotalN": 2.8770246570983296,
+              "TotalP": 0.3617462067299904
+            }
+          ],
+          "inputmod_hash": "",
+          "watershed_id": null
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, _, _ = _parse_analyze_input(request)
+
+    geom = GEOSGeometry(area_of_interest, srid=4326)
+
+    huc12_geojson, huc12_wkaoi = huc12_for_point(geom.centroid)
+
+    return start_celery_job([
+        multi_mapshed(huc12_geojson, huc12_wkaoi),
+        convert_data.s(huc12_wkaoi),
+        collect_data.s(huc12_geojson),
+        run_gwlfe.s(inputmod_hash=''),
+        # TODO Scale results to Drainage Area
     ], area_of_interest, user)
 
 
 @swagger_auto_schema(method='post',
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1367,11 +1679,11 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _ = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1399,13 +1711,10 @@ def start_modeling_gwlfe_prepare(request, format=None):
     `wkaoi`, then `huc`.
 
     The `result` should be used with the gwlf-e/run endpoint, by sending at as
-    the `input`. Alternatively, the `job` UUID can be used as well by sending
-    it as the `job_uuid`.
+    the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_modeling_input(request)
-
-    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(request)
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
@@ -1425,7 +1734,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
 @log_request
 def start_modeling_gwlfe_run(request, format=None):
     """
-    Starts a job to GWLF-E for a given prepared input.
+    Starts a job to run GWLF-E for a given prepared input.
 
     Given an `input` JSON of the gwlf-e/prepare endpoint's `result`, or a
     `job_uuid` of a gwlf-e/prepare job, runs GWLF-E and returns a JSON
@@ -1439,37 +1748,154 @@ def start_modeling_gwlfe_run(request, format=None):
     For more details on the GWLF-E package, please see: [https://github.com/WikiWatershed/gwlf-e](https://github.com/WikiWatershed/gwlf-e)  # NOQA
     """
     user = request.user if request.user.is_authenticated else None
-    model_input = request.data.get('input')
-
-    if not model_input:
-        job_uuid = request.data.get('job_uuid')
-
-        if not job_uuid:
-            raise ValidationError(
-                'At least one of `input` or `job_uuid` must be specified')
-
-        input_job = get_object_or_404(Job, uuid=job_uuid)
-        if input_job.status == JobStatus.STARTED:
-            raise exceptions.JobNotReadyError(
-                f'The prepare job {job_uuid} has not finished yet.')
-
-        if input_job.status == JobStatus.FAILED:
-            raise exceptions.JobFailedError(
-                f'The prepare job {job_uuid} has failed.')
-
-        model_input = json.loads(input_job.result)
-
-    # TODO #3484 Validate model_input
-
-    # TODO #3485 Implement modifications, hash
-    mods = []
-    hash = ''
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request)
 
     modified_model_input = apply_gwlfe_modifications(model_input, mods)
 
     return start_celery_job([
         run_gwlfe.s(modified_model_input, hash)
     ], model_input, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.SUBBASIN_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_subbasin_prepare(request, format=None):
+    """
+    Starts a job to prepare input for running Subbasin GWLF-E for a given HUC.
+
+    Given a HUC-8, HUC-10, or HUC-12, via a WKAoI or a HUC parameter, gathers
+    data from land, soil type, groundwater nitrogen, available water capacity,
+    K-factor, slope, soil nitrogen, soil phosphorus, base-flow index, and
+    stream datasets, for each HUC-12 within the given HUC.
+
+    Does not run on arbitrary areas of interest, only on HUCs. They must be
+    specified via one of `wkaoi` or `huc`. If both are specified, `wkaoi` will
+    be used.
+
+    `layer_overrides` can be provied to use specific land and streams layers.
+    NLCD 2019 and NHD High Resolution are used by default.
+
+    The `result` is a dictionary where the keys are HUC-12s and the values are
+    the same as those of `gwlf-e/prepare`, for each HUC-12.
+
+    The `result` should be used with the subbasin/run endpoint, by sending at
+    as the `input`. Alternatively, the `job_uuid` can be used as well.
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, huc = _parse_subbasin_input(request)
+
+    layer_overrides = request.data.get('layer_overrides', {})
+
+    huc12s = huc12s_for_huc(huc)
+
+    if not huc12s:
+        raise ValidationError(f'No HUC-12s found for WKAoI {wkaoi}, HUC {huc}')
+
+    return start_celery_job([
+        multi_subbasin(area_of_interest, huc12s, layer_overrides),
+        collect_subbasin.s(huc12s, layer_overrides),
+        subbasin_results_to_dict.s()
+    ], request.data, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.SUBBASIN_RUN_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_subbasin_run(request, format=None):
+    """
+    Starts a job to run GWLF-E for all subbasins in given input.
+
+    Given a `job_uuid` of a subbasin/prepare job, runs GWLF-E on every HUC-12
+    subbasin whose results were prepared.
+
+    The result includes `Loads` which have total nitrogen, phosphorus, and
+    sediment loads for GWLF-E land cover types, including Hay/Pasture,
+    Cropland, Wooded Areas, Open Land, Barren Areas, Low-Density Mixed, Medium-
+    Density Mixed, High-Density Mixed, Low-Density Open Space, and other
+    categories such as Farm Animals, Stream Bank Erosion, Subsurface Flow,
+    Welands, Point Sources, and Septic Systems.
+
+    The total loads across all these cateogires are summarized in
+    `SummaryLoads`.
+
+    `Loads` and `SummaryLoads` are also available for every HUC-12 in the
+    input. Every HUC-12 also has `Catchments` level data, which include
+    Loading Rate Concentrations and Total Loading Rates for nitrogen,
+    phosphorus, and sediment.
+    """
+    user = request.user if request.user.is_authenticated else None
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
+
+    # Instead of using start_celery_job, we do a manual implementation here.
+    # This is required because start_celery_job tries to add an error handler
+    # to ever job in the chain, but this includes groups, for which that is not
+    # allowed. So we manually create a job and a task_chain, wire up all the
+    # error handling, and return the job response.
+
+    job = Job.objects.create(created_at=now(), result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_chain = _initiate_subbasin_gwlfe_job_chain(
+        model_input, job_uuid, mods, hash, job.id)
+
+    job.uuid = task_chain.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_chain.id,
+            'job_uuid': task_chain.id,
+            'status': JobStatus.STARTED,
+            # TODO Remove this message when `job` is deprecated
+            'messages': [
+                'The `job` field will be deprecated in an upcoming release. '
+                'Please switch to using `job_uuid` instead.'
+            ],
+        },
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_chain.id])}
+    )
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((AllowAny, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_draw_drainage_area_point(request):
+    user = request.user if request.user.is_authenticated else None
+
+    return start_celery_job([
+        tasks.draw_drainage_area_point.s(request.data),
+    ], request.data, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((AllowAny, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_draw_drainage_area_stream(request):
+    user = request.user if request.user.is_authenticated else None
+
+    return start_celery_job([
+        tasks.draw_drainage_area_stream.s(request.data),
+    ], request.data, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
@@ -1481,7 +1907,8 @@ def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
         .apply_async(link_error=errback)
 
 
-def start_celery_job(task_list, job_input, user=None, link_error=True):
+def start_celery_job(task_list, job_input, user=None, link_error=True,
+                     messages=list()):
     """
     Given a list of Celery tasks and it's input, starts a Celery async job with
     those tasks, adds save_job_result and save_job_error handlers, and returns
@@ -1491,6 +1918,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     :param job_input: Input to the first task, used in recording started jobs
     :param user: The user requesting the job. Optional.
     :param link_error: Whether or not to apply error handler to entire chain
+    :param messages: A list of messages to include in the output
+                     (e.g. deprecations)
     :return: A Response contianing the job id, marked as JobStatus.STARTED
     """
     created = now()
@@ -1510,24 +1939,76 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     job.uuid = task_chain.id
     job.save()
 
+    data = {
+        'job': task_chain.id,
+        'job_uuid': task_chain.id,
+        'status': JobStatus.STARTED,
+    }
+
+    # TODO Remove this message when `job` is deprecated
+    messages.append(
+        'The `job` field will be deprecated in an upcoming release. Please '
+        'switch to using `job_uuid` instead.'
+    )
+
+    if messages:
+        data['messages'] = messages
+
     return Response(
-        {
-            'job': task_chain.id,
-            'status': JobStatus.STARTED,
-        },
+        data,
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
     )
 
 
 def _parse_analyze_input(request):
-    return _parse_aoi(data={'area_of_interest': request.data,
-                            'wkaoi': request.query_params.get('wkaoi'),
-                            'huc': request.query_params.get('huc')})
+    """
+    Parses analyze requests and returns area_of_interest, wkaoi, and msg.
+
+    Old style analyze requests put the area of interest GeoJSON in the POST
+    body, and wkaoi and huc as query parameters. We are transitioning to a
+    new model where all input is provided in the POST body, in the format:
+
+    {
+        area_of_interest: <GeoJSON?>,
+        wkaoi: <string?>,
+        huc: <string?>
+    }
+
+    If the request is in the old style, returns a msg list which includes a
+    message for users warning about upcoming deprecation.
+    """
+    msg = []
+
+    if ('area_of_interest' in request.data or
+            'wkaoi' in request.data or
+            'huc' in request.data):
+        area_of_interest, wkaoi = _parse_aoi(request.data)
+        return area_of_interest, wkaoi, msg
+
+    # TODO Remove this message when old style /analyze/ input is deprecated
+    msg = [
+        'The /analyze/ APIs will be updated to match the /modeling/ APIs in '
+        'an upcoming release. Instead of sending GeoJSON of the area of '
+        'interest in the request body, and wkaoi and huc as query parameters, '
+        'please send all in the request body, as { area_of_interest, wkaoi, '
+        'huc }. Consult the API documentation for details.'
+    ]
+
+    area_of_interest, wkaoi = _parse_aoi(data={
+        'area_of_interest': request.data,
+        'wkaoi': request.query_params.get('wkaoi'),
+        'huc': request.query_params.get('huc')})
+
+    return area_of_interest, wkaoi, msg
 
 
 def _parse_modeling_input(request):
-    return _parse_aoi(request.data)
+    validate_gwlfe_prepare(request.data)
+    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi = _parse_aoi(request.data)
+
+    return area_of_interest, wkaoi, layer_overrides
 
 
 def _parse_aoi(data):
@@ -1537,3 +2018,65 @@ def _parse_aoi(data):
     wkaoi = serializer.validated_data.get('wkaoi')
 
     return area_of_interest, wkaoi
+
+
+def _parse_subbasin_input(request):
+    check_exactly_one_provided(['wkaoi', 'huc'], request.data)
+
+    wkaoi = request.data.get('wkaoi')
+    if wkaoi:
+        table = wkaoi.split('__')[0]
+        if table not in ['huc8', 'huc10', 'huc12']:
+            raise ValidationError(
+                'Invalid `wkaoi`: Subbasin modeling is only supported for '
+                '"huc8__XX", "huc10__XX", and "huc12__XX" wkaois.')
+
+    serializer = AoiSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    return itemgetter('area_of_interest', 'wkaoi', 'huc')(
+        serializer.validated_data)
+
+
+def _parse_gwlfe_input(request, raw_input=True):
+    """
+    Given a request, parses the model_input from it.
+
+    If raw_input is True, then assumes there may be a model_input key specified
+    directly in the request body. If found, uses that. Otherwise uses the
+    job_uuid field.
+
+    Raises validation errors where appropriate.
+    """
+    job_uuid = request.data.get('job_uuid')
+
+    mods = request.data.get('modifications', list())
+    hash = request.data.get('inputmod_hash', '')
+
+    one_of = ['input', 'job_uuid'] if raw_input else ['job_uuid']
+
+    check_exactly_one_provided(one_of, request.data)
+
+    if raw_input:
+        model_input = request.data.get('input')
+
+        if model_input:
+            validate_gwlfe_run(model_input)
+
+            return model_input, job_uuid, mods, hash
+
+    if not validate_uuid(job_uuid):
+        raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
+
+    input_job = get_object_or_404(Job, uuid=job_uuid)
+    if input_job.status == JobStatus.STARTED:
+        raise exceptions.JobNotReadyError(
+            f'The prepare job {job_uuid} has not finished yet.')
+
+    if input_job.status == JobStatus.FAILED:
+        raise exceptions.JobFailedError(
+            f'The prepare job {job_uuid} has failed.')
+
+    model_input = json.loads(input_job.result)
+
+    return model_input, job_uuid, mods, hash

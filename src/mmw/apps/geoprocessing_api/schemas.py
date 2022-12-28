@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from drf_yasg.openapi import (
     Parameter, Schema,
-    IN_PATH, IN_QUERY,
+    IN_PATH,
     FORMAT_DATETIME, FORMAT_UUID,
     TYPE_ARRAY, TYPE_BOOLEAN, TYPE_NUMBER, TYPE_OBJECT, TYPE_STRING
 )
@@ -48,26 +48,6 @@ DRB_2100_LAND_KEY = Parameter(
                 ),
     type=TYPE_STRING,
     required=True,
-)
-
-WKAOI = Parameter(
-    'wkaoi',
-    IN_QUERY,
-    description='The table and ID for a well-known area of interest, '
-                'such as a HUC. '
-                'Format "table__id", eg. "huc12__55174" will analyze '
-                'the HUC-12 City of Philadelphia-Schuylkill River.',
-    type=TYPE_STRING,
-)
-
-HUC = Parameter(
-    'huc',
-    IN_QUERY,
-    description='The Hydrologic Unit Code (HUC) of the area of interest. '
-                'Should be an 8, 10, or 12 digit string of numbers, e.g. '
-                '"020402031008" will analyze the HUC-12 City of Philadelphia-'
-                'Schuylkill River.',
-    type=TYPE_STRING,
 )
 
 MULTIPOLYGON = Schema(
@@ -135,9 +115,12 @@ JOB_STARTED_RESPONSE = Schema(
     title='Job Started Response',
     type=TYPE_OBJECT,
     properties={
-        'job': Schema(type=TYPE_STRING, format=FORMAT_UUID,
-                      example='6e514e69-f46b-47e7-9476-c1f5be0bac01'),
+        'job_uuid': Schema(type=TYPE_STRING, format=FORMAT_UUID,
+                           example='6e514e69-f46b-47e7-9476-c1f5be0bac01'),
         'status': Schema(type=TYPE_STRING, example=JobStatus.STARTED),
+        'messages': Schema(type=TYPE_ARRAY, items=Schema(type=TYPE_STRING),
+                           description='Optional messages provided by the API,'
+                                       ' e.g. deprecation notices, etc.')
     }
 )
 
@@ -232,31 +215,67 @@ LAYER_OVERRIDES = Schema(
     },
 )
 
+WKAOI = Schema(
+    title='Well-Known Area of Interest',
+    type=TYPE_STRING,
+    example='huc12__55174',
+    description='The table and ID for a well-known area of interest, '
+                'such as a HUC. '
+                'Format "table__id", eg. "huc12__55174" will analyze '
+                'the HUC-12 City of Philadelphia-Schuylkill River.',
+)
+
+HUC = Schema(
+    title='Hydrologic Unit Code',
+    type=TYPE_STRING,
+    example='020402031008',
+    description='The Hydrologic Unit Code (HUC) of the area of '
+                'interest. Should be an 8, 10, or 12 digit string of '
+                'numbers, e.g. "020402031008" will analyze the HUC-12 '
+                'City of Philadelphia-Schuylkill River.',
+)
+
+ANALYZE_REQUEST = Schema(
+    title='Analyze Request',
+    type=TYPE_OBJECT,
+    properties={
+        'area_of_interest': MULTIPOLYGON,
+        'wkaoi': WKAOI,
+        'huc': HUC,
+    },
+)
+
 MODELING_REQUEST = Schema(
     title='Modeling Request',
     type=TYPE_OBJECT,
     properties={
         'area_of_interest': MULTIPOLYGON,
-        'wkaoi': Schema(
-            title='Well-Known Area of Interest',
-            type=TYPE_STRING,
-            example='huc12__55174',
-            description='The table and ID for a well-known area of interest, '
-                        'such as a HUC. '
-                        'Format "table__id", eg. "huc12__55174" will analyze '
-                        'the HUC-12 City of Philadelphia-Schuylkill River.',
-        ),
-        'huc': Schema(
-            title='Hydrologic Unit Code',
-            type=TYPE_STRING,
-            example='020402031008',
-            description='The Hydrologic Unit Code (HUC) of the area of '
-                        'interest. Should be an 8, 10, or 12 digit string of '
-                        'numbers, e.g. "020402031008" will analyze the HUC-12 '
-                        'City of Philadelphia-Schuylkill River.',
-        ),
+        'wkaoi': WKAOI,
+        'huc': HUC,
         'layer_overrides': LAYER_OVERRIDES,
     },
+)
+
+GWLFE_MODIFICATIONS = Schema(
+    type=TYPE_ARRAY,
+    items=Schema(type=TYPE_OBJECT),
+    description='An optional list of objects each overriding the GWLF-E input '
+                'object. An object in the array should have keys that either '
+                'match a key in the GWLF-E input, or be in the format '
+                'KEY__INDEX, where KEY corresponds to an array key in the '
+                'GWLF-E input, and the INDEX corresponds to the index in that '
+                'array to modify. The value of the modification is the one '
+                'that will be used. Modifications are applied in order, so '
+                'later ones will override earlier ones. This is particularly '
+                'useful when the input is provided as job_uuid rather than an '
+                'object. e.g. [{ "n26": 88.8, "CN__1": 80.3 }]'
+)
+
+INPUTMOD_HASH = Schema(
+    type=TYPE_STRING,
+    description='An optional string to uniquely represent the contents of the '
+                'input and the modifications, usually a hash of them. It is '
+                'included as is in the result, and can be used '
 )
 
 GWLFE_REQUEST = Schema(
@@ -273,5 +292,33 @@ GWLFE_REQUEST = Schema(
             example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
             description='The job uuid of modeling/gwlf-e/prepare/',
         ),
+        'modifications': GWLFE_MODIFICATIONS,
+        'inputmod_hash': INPUTMOD_HASH,
     },
+)
+
+SUBBASIN_REQUEST = Schema(
+    title='Subbasin Request',
+    type=TYPE_OBJECT,
+    properties={
+        'wkaoi': WKAOI,
+        'huc': HUC,
+        'layer_overrides': LAYER_OVERRIDES,
+    },
+)
+
+SUBBASIN_RUN_REQUEST = Schema(
+    title='Subbasin Run Request',
+    type=TYPE_OBJECT,
+    properties={
+        'job_uuid': Schema(
+            type=TYPE_STRING,
+            format=FORMAT_UUID,
+            example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
+            description='The job uuid of modeling/subbasin/prepare/',
+        ),
+        'modifications': GWLFE_MODIFICATIONS,
+        'inputmod_hash': INPUTMOD_HASH,
+    },
+    required=['job_uuid'],
 )

@@ -127,7 +127,17 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
             'Area': area,
         }
 
-    def format_catchment(srat_catchment):
+    def format_catchment(srat_catchment, loads_template):
+        for key, value in srat_catchment.items():
+            # A sample load source key is 'tnload_hp'.
+            # The first half 'tnload' indicates which kinds of loads
+            # The second half 'hp' is the acronym of the source of loads
+            if '_' in key:
+                load_type, load_source = key.split('_')
+                for load in loads_template:
+                    if load_source == settings.SRAT_KEYS[load['Source']]:
+                        add_load_by_key(load_type, value, load)
+
         return {
             'TotalLoadingRates': {
                 'TotalN': srat_catchment['tnloadrate_total'],
@@ -139,7 +149,28 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
                 'TotalP': srat_catchment['tploadrate_conc'],
                 'Sediment': srat_catchment['tssloadrate_conc'],
             },
+            'Loads': loads_template
         }
+
+    def add_load_by_key(load_type, value, load):
+        type_mapping = {
+            'tpload': 'TotalP',
+            'tnload': 'TotalN',
+            'tssload': 'Sediment'
+        }
+
+        if load_type in type_mapping:
+            load[type_mapping[load_type]] = value
+
+        return load
+
+    def catchment_template(keys_template):
+        return [{
+            'Source': key_name,
+            'TotalN': 0,
+            'TotalP': 0,
+            'Sediment': 0
+        } for key_name in keys_template.keys()]
 
     def sum_loads(loads):
         def add_load(sums, load):
@@ -168,6 +199,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
         loads = [add_huc12_source(s, srat_huc12, source_areas, area)
                  for s in aggregate['Loads']]
         summary_loads = build_summary_loads(loads, area)
+        catchment_loads_template = catchment_template(settings.SRAT_KEYS)
 
         # Build up the full AOI's values with the huc-12's
         aggregate['SummaryLoads']['Area'] += area
@@ -178,9 +210,10 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
         return {
             'Loads': loads,
             'SummaryLoads': summary_loads,
-            'Catchments': {comid: format_catchment(result)
-                           for comid, result
-                           in srat_huc12['catchments'].items()},
+            'Catchments': {
+                comid: format_catchment(result, catchment_loads_template)
+                for comid, result in srat_huc12['catchments'].items()},
+            'Raw': huc12_gwlfe_results[srat_huc12['huc12']]
         }
 
     aggregate = {
