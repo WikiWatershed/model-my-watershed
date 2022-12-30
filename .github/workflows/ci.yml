@@ -35,26 +35,29 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Set up Ansible
-        run: pip3 install ansible==2.9.*
+      - name: Figure out Vagrant
+        run: ls ~/.vagrant.d/boxes/
+      
+      # - name: Set up Ansible
+      #   run: pip3 install ansible==2.9.*
 
-      - name: Set up Vagrant
-        run: |
-          vagrant plugin install vagrant-disksize
-          mkdir ~/.aws
-          sudo mkdir /etc/vbox
-          echo "
-            * 192.168.56.0/21
-            * 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
+      # - name: Set up Vagrant
+      #   run: |
+      #     vagrant plugin install vagrant-disksize
+      #     mkdir ~/.aws
+      #     sudo mkdir /etc/vbox
+      #     echo "
+      #       * 192.168.56.0/21
+      #       * 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
       
-      - name: Vagrant base box update
-        run: vagrant box update
+      # - name: Vagrant base box update
+      #   run: vagrant box update
       
-      - name: Vagrant up
-        run: ./scripts/vagrant-up.sh
+      # - name: Vagrant up
+      #   run: ./scripts/vagrant-up.sh
       
-      - name: Test
-        run: ./scripts/test.sh
+      # - name: Test
+      #   run: ./scripts/test.sh
 
-      - name: Halt the VM
-        run: vagrant halt
+      # - name: Halt the VM
+      #   run: vagrant halt
