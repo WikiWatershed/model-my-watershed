@@ -36,7 +36,7 @@ jobs:
           python-version: "3.x"
 
       - name: Figure out Vagrant
-        run: ls ~/.vagrant.d/boxes/
+        run: vagrant box list
       
       # - name: Set up Ansible
       #   run: pip3 install ansible==2.9.*
