@@ -35,12 +35,13 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Set up Ansible
-        run: pip3 install ansible==2.9.*
+      # - name: Set up Ansible
+      #   run: pip3 install ansible==2.9.*
 
       - name: Set up Vagrant
         run: |
           vagrant plugin install vagrant-disksize
+          mkdir ~/.aws
           sudo mkdir /etc/vbox
           echo "
             * 192.168.56.0/21
