@@ -8,6 +8,7 @@ To install the Python deployment dependencies, use `pip`:
 
 ```bash
 $ cd deployment
+$ pip install "setuptools<58"
 $ pip install -r requirements.txt
 ```
 
