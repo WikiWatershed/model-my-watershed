@@ -232,12 +232,12 @@ var DrawWindow = Marionette.LayoutView.extend({
             })
         );
 
-        this.drainageAreaRegion.show(new DrainageAreaView({
-            model: this.model,
-            resetDrawingState: resetDrawingState,
-            drainageAreaPointModel: this.drainageAreaPointModel,
-            drainageAreaStreamModel: this.drainageAreaStreamModel,
-        }));
+//         this.drainageAreaRegion.show(new DrainageAreaView({
+//             model: this.model,
+//             resetDrawingState: resetDrawingState,
+//             drainageAreaPointModel: this.drainageAreaPointModel,
+//             drainageAreaStreamModel: this.drainageAreaStreamModel,
+//         }));
 
         this.uploadFileRegion.show(new AoIUploadView({
             model: this.model,
