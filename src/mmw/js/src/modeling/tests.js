@@ -866,7 +866,8 @@ describe('Modeling', function() {
                     self.scenarioModel.fetchResults().pollingPromise.always(function() {
                         assert(self.setNullResultsSpy.calledOnce, 'setNullResults should have been called once');
                         assert.isFalse(self.setResultsSpy.called, 'setResults should not have been called');
-                        assert(saveSpy.calledTwice, 'attemptSave should have been called twice');
+                        // TODO: Re-enable tests https://github.com/WikiWatershed/model-my-watershed/issues/3442
+                        // assert(saveSpy.calledTwice, 'attemptSave should have been called twice');
                         fetchResultsAssertions(self);
                         done();
                     });

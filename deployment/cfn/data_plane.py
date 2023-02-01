@@ -418,7 +418,7 @@ class DataPlane(StackNode):
 
         elasticache_parameter_group = self.add_resource(ec.ParameterGroup(
             'ecpgCacheCluster',
-            CacheParameterGroupFamily='redis2.8',
+            CacheParameterGroupFamily='redis5.0',
             Description='Parameter group for the ElastiCache instances',
             Properties={'maxmemory-policy': 'allkeys-lru'}
         ))
@@ -431,7 +431,7 @@ class DataPlane(StackNode):
             CacheParameterGroupName=Ref(elasticache_parameter_group),
             CacheSubnetGroupName=Ref(elasticache_subnet_group),
             Engine='redis',
-            EngineVersion='2.8.19',
+            EngineVersion='5.0.6',
             NotificationTopicArn=Ref(self.notification_topic_arn),
             NumCacheClusters=2,
             PreferredCacheClusterAZs=Ref(self.availability_zones),
