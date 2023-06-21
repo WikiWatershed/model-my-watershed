@@ -3,7 +3,7 @@
 var $ = require('jquery');
 
 // Mock the Google Analytics function for tests
-window.ga = function() {};
+window.dataLayer = { push: function() {} };
 
 // Should be called after each unit test.
 function resetApp(app) {
