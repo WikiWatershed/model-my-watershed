@@ -113,7 +113,7 @@ var ModelingController = {
     },
 
     makeNewProject: function(modelPackage) {
-        window.ga('send', 'event', constants.GA.MODEL_CATEGORY, constants.GA.MODEL_CREATE_EVENT, modelPackage);
+        utils.gtm(constants.GA.MODEL_CATEGORY, constants.GA.MODEL_CREATE_EVENT, modelPackage);
 
         var project;
         if (settings.get('itsi_embed')) {

@@ -470,7 +470,7 @@ var AoIUploadView = Marionette.ItemView.extend({
         }
 
         this.addPolygonToMap(polygon);
-        window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'geojson');
+        coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'geojson');
     },
 
     handleShpZip: function(zipfile) {
@@ -485,7 +485,7 @@ var AoIUploadView = Marionette.ItemView.extend({
             })
             .catch(_.bind(self.handleShapefileError, self));
 
-        window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'shapefile');
+        coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'shapefile');
     },
 
     reprojectAndAddFeature: function(shp, prj) {
@@ -718,8 +718,8 @@ var SelectBoundaryView = DrawToolBaseView.extend({
             codeToLayer[layerCode] = ol;
 
             grid.on('click', function(e) {
-                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'boundary-' + layerCode);
-                window.ga('send', 'event', GA_AOI_CATEGORY, 'boundary-aoi-create', e.data.name);
+                coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'boundary-' + layerCode);
+                coreUtils.gtm(GA_AOI_CATEGORY, 'boundary-aoi-create', e.data.name);
 
                 getShapeAndAnalyze(e, self.model, ofg, grid, layerCode, shortDisplay);
             });
@@ -831,7 +831,7 @@ var DrawAreaView = DrawToolBaseView.extend({
             .then(function(shape) {
                 addLayer(shape);
                 navigateToAnalyze();
-                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'freedraw');
+                coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'freedraw');
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);
@@ -848,7 +848,7 @@ var DrawAreaView = DrawToolBaseView.extend({
             var point = L.marker(latlng).toGeoJSON(),
                 box = utils.getSquareKmBoxForPoint(point);
 
-            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'squarekm');
+            coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'squarekm');
             return box;
         }).then(validateShape).then(function(polygon) {
             addLayer(polygon, '1 Square Km');
@@ -937,7 +937,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
 
         utils.placeMarker(map)
             .then(function(latlng) {
-                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'rwd-' + dataSource);
+                coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'rwd-' + dataSource);
                 return validatePointWithinDataSourceBounds(latlng, dataSource);
             })
             .then(function(latlng) {
@@ -1140,7 +1140,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
             App.map.set('areaOfInterestAdditionals', additionalShapes);
             addLayer(response.area_of_interest, 'Point-based Drainage Area');
             navigateToAnalyze();
-            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
+            coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
@@ -1179,7 +1179,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
                 App.map.set('areaOfInterestAdditionals', additionalShapes);
                 addLayer(response.area_of_interest, 'Stream-based Drainage Area');
                 navigateToAnalyze();
-                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
+                coreUtils.gtm(GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);

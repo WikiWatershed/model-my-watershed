@@ -800,6 +800,23 @@ var utils = {
 
         return result;
     },
+
+    // Convenience method for Google Tag Manager that mimics the
+    // old Google Analytics API
+    gtm: function(eventCategory, eventAction, eventLabel, eventValue) {
+        var event = {
+            'event': 'mmw',
+            'eventCategory': eventCategory,
+            'eventAction': eventAction,
+            'eventLabel': eventLabel,
+        };
+
+        if (eventValue) {
+            event.eventValue = eventValue;
+        }
+
+        window.dataLayer.push(event);
+    },
 };
 
 module.exports = utils;

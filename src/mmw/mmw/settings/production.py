@@ -98,7 +98,7 @@ DISABLED_MODEL_PACKAGES = []
 GOOGLE_MAPS_API_KEY = 'AIzaSyCXdkywU7rps_i1CeKqWxlBi97vyGeXsqk'
 
 # Stroud account
-GOOGLE_ANALYTICS_ACCOUNT = 'UA-47047573-15'
+GOOGLE_ANALYTICS_ACCOUNT = 'G-R98FWXKCFY'
 
 # django-cookies-samesite
 SESSION_COOKIE_SAMESITE = 'None'  # Allows for cross site embedding into LARA

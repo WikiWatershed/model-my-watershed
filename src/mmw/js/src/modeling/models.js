@@ -1297,8 +1297,8 @@ var ScenarioModel = Backbone.Model.extend({
             modelPackage = App.currentProject.get('model_package'),
             modKeyName = modelPackage === utils.GWLFE ? 'modKey' : 'value';
 
-        window.ga('send', 'event', constants.GA.MODEL_CATEGORY,
-           modelPackage + constants.GA.MODEL_MOD_EVENT, modification.get(modKeyName));
+        utils.gtm(constants.GA.MODEL_CATEGORY,
+            modelPackage + constants.GA.MODEL_MOD_EVENT, modification.get(modKeyName));
 
         // For GWLFE, first remove existing mod with the same key since it
         // doesn't make sense to have multiples of the same type of BMP.
@@ -1750,7 +1750,7 @@ var ScenariosCollection = Backbone.Collection.extend({
                 inputs: currentConditions.get('inputs').toJSON(),
             });
 
-        window.ga('send', 'event', constants.GA.MODEL_CATEGORY, constants.GA.MODEL_SCENARIO_EVENT, modelPackage);
+        utils.gtm(constants.GA.MODEL_CATEGORY, constants.GA.MODEL_SCENARIO_EVENT, modelPackage);
 
         this.add(scenario);
         this.setActiveScenarioByCid(scenario.cid);
