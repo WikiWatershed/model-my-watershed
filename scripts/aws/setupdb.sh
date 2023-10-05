@@ -15,8 +15,9 @@ where options are one or more of: \n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
-    -c  load/reload nhdplus catchment data
+    -c  load/reload nhdplus catchment data\n
     -q  load/reload water quality data\n
+    -X  purge s3 cache as well\n
     -x  purge s3 cache for given path\n
 "
 
@@ -29,6 +30,7 @@ load_hires_stream=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
+should_purge_cache=false
 
 while getopts ":hbsSdpmqcf:x:" opt; do
     case $opt in
@@ -55,6 +57,8 @@ while getopts ":hbsSdpmqcf:x:" opt; do
             file_to_load=$OPTARG ;;
         x)
             path_to_purge=$OPTARG ;;
+        X)
+            should_purge_cache=true ;;
         \?)
             echo "invalid option: -$OPTARG"
             exit ;;
@@ -85,9 +89,11 @@ function download_and_load {
 }
 
 function purge_tile_cache {
-    for path in "${PATHS[@]}"; do
-        aws s3 rm --recursive "s3://tile-cache.${PUBLIC_HOSTED_ZONE_NAME}/${path}/"
-    done
+    if [ "$should_purge_cache" = "true" ] ; then
+        for path in "${PATHS[@]}"; do
+            aws s3 rm --recursive "s3://tile-cache.${PUBLIC_HOSTED_ZONE_NAME}/${path}/"
+        done
+    fi
 }
 
 function create_trgm_indexes {
