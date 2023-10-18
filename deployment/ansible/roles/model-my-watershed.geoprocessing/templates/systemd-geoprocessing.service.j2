@@ -4,13 +4,12 @@ After=network.target
 
 [Service]
 {% if ['development', 'test'] | some_are_in(group_names) -%}
-Environment=MMW_GEOPROCESSING_TIMEOUT={{ geop_timeout }}s AWS_PROFILE={{ aws_profile }}
-{% else %}
-Environment=MMW_GEOPROCESSING_TIMEOUT={{ geop_timeout }}s
+Environment=AWS_PROFILE={{ aws_profile }}
 {% endif %}
+Environment="JAVA_WITH_ENV=/usr/bin/envdir /etc/mmw.d/env /usr/bin/java"
 User=mmw
 WorkingDirectory={{ geop_home }}
-ExecStart=/usr/bin/java -jar mmw-geoprocessing-{{ geop_version }}.jar
+ExecStart=/bin/sh -c '${JAVA_WITH_ENV} -jar mmw-geoprocessing-{{ geop_version }}.jar'
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=geoprocessing
