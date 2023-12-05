@@ -44,7 +44,7 @@ docker_compose_version: "1.26.*"
 geop_host: "localhost"
 geop_port: 8090
 
-geop_version: "5.3.0"
+geop_version: "5.4.0"
 geop_cache_enabled: 1
 geop_timeout: 200s
 geop_bucket: datahub-catalogs-us-east-1
