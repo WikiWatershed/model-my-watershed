@@ -9,6 +9,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
+import re
+
 from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
@@ -128,7 +130,11 @@ CELERY_TASK_QUEUES = {
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 
-CELERY_TASK_TIME_LIMIT = int(environ.get('MMW_GEOPROCESSING_TIMEOUT', 120))
+# MMW_GEOPROCESSING_TIMEOUT specified with "s" suffix for mmw-geoprocessing
+MMW_GEOPROCESSING_TIMEOUT = environ.get('MMW_GEOPROCESSING_TIMEOUT', '120s')
+
+CELERY_TASK_TIME_LIMIT = int(
+    re.search(r'\d+', MMW_GEOPROCESSING_TIMEOUT).group())
 TASK_REQUEST_TIMEOUT = CELERY_TASK_TIME_LIMIT - 10
 # END CELERY CONFIGURATION
 
