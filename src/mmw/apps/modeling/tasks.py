@@ -132,8 +132,11 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
             # A sample load source key is 'tnload_hp'.
             # The first half 'tnload' indicates which kinds of loads
             # The second half 'hp' is the acronym of the source of loads
-            if '_' in key:
-                load_type, load_source = key.split('_')
+            # Sometimes the first half has underscores, like 'tn_conc_ptsource'
+            split_at = key.rfind('_')
+            if split_at > -1:
+                load_type = key[0:split_at]
+                load_source = key[split_at:]
                 for load in loads_template:
                     if load_source == settings.SRAT_KEYS[load['Source']]:
                         add_load_by_key(load_type, value, load)
