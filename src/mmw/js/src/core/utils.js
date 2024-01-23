@@ -555,7 +555,8 @@ var utils = {
         }
         var layerCode = wkaoi.split('__')[0];
         return layerCode === 'huc8' ||
-               layerCode === 'huc10';
+               layerCode === 'huc10' ||
+               layerCode === 'huc12';
     },
 
     // Array.filter(distinct) to get distinct values
