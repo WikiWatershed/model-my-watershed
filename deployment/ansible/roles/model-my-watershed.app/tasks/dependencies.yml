@@ -15,7 +15,7 @@
     - Restart mmw-app
 
 - name: Install application Python dependencies for production
-  pip: requirements="{{ app_home }}/requirements/production.txt"
+  pip: requirements="{{ app_home }}/requirements/production.txt" state=latest
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart mmw-app
