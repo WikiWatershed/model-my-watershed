@@ -10,7 +10,6 @@ BastionHostInstanceType: 't2.micro'
 BastionHostAMI: ''
 PrivateHostedZoneName: 'mmw.internal'
 PublicHostedZoneName: 'staging.modelmywatershed.org'
-BackwardCompatPublicHostedZoneName: 'staging.portal.bigcz.org'
 RDSInstanceType: 'db.t2.micro'
 RDSDbName: 'modelmywatershed'
 RDSParameterGroupName: 'mmw-postgres96'
@@ -33,7 +32,6 @@ AppServerAutoScalingScheduleEndCapacity: '0'
 # 8PM ET
 AppServerAutoScalingScheduleEndRecurrence: '0 1 * * *'
 SSLCertificateARN: 'arn:aws:iam...'
-BackwardCompatSSLCertificateARN: 'arn:aws:iam...'
 TileServerInstanceType: 't2.micro'
 # Leaving this commented dynamically looks up the
 # most recent AMI for this type.
