@@ -1,4 +1,6 @@
 ---
+aws_region: "us-east-1"
+
 redis_port: 6379
 postgresql_port: 5432
 
