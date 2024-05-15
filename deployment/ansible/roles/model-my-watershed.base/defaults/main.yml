@@ -1,6 +1,7 @@
 envdir_home: "/etc/mmw.d/env"
 
 envdir_config:
+  AWS_REGION: "{{ aws_region }}"
   MMW_DB_NAME: "{{ postgresql_database }}"
   MMW_DB_USER: "{{ postgresql_username }}"
   MMW_DB_PASSWORD: "{{ postgresql_password }}"
