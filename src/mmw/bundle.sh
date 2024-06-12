@@ -120,6 +120,7 @@ JS_DEPS=(backbone
          d3
          iframe-phone
          ./js/shim/leaflet.utfgrid.js
+         ./js/shim/Leaflet.MapboxVectorTile.umd.js
          ./js/shim/marionette.transition-region.js
          ./js/shim/shutterbug.js
          ./js/shim/highstock.js
