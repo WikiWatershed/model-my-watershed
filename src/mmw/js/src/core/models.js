@@ -180,6 +180,11 @@ var LayerModel = Backbone.Model.extend({
                 maxZoom: layerSettings.maxZoom,
                 maxNativeZoom: layerSettings.maxNativeZoom,
                 minZoom: layerSettings.minZoom,
+                style: function(feature) {
+                    return {
+                        color: '#1562A9',
+                    };
+                },
             });
         } else {
             var tileUrl = (layerSettings.url.match(/png/) === null ?
