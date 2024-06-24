@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Hector Castro
+  description: An Ansible role to install Nginx.
+  license: Apache
+  min_ansible_version: 2.5
+  platforms:
+  - name: Ubuntu
+    versions:
+    - trusty
+    - xenial
+    - bionic
+  categories:
+  - web
+dependencies: []
