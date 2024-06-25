@@ -3,6 +3,5 @@ dependencies:
   - { role: "model-my-watershed.base" }
   - { role: "azavea.yarn" }
   - { role: "azavea.nodejs", nodejs_version: "{{ app_nodejs_version }}", nodejs_npm_version: "{{ app_nodejs_npm_version }}" }
-  - { role: "azavea.phantomjs" }
   - { role: "model-my-watershed.celery" }
   - { role: "model-my-watershed.nginx", nginx_delete_default_site: True }
