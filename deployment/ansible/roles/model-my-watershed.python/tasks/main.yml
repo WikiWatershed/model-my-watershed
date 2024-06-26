@@ -1,9 +1,33 @@
-- name: Install Python 3
+- name: Add Python3 dependencies
   apt:
-    pkg: ["python3={{ python_version }}",
-          "python3-dev={{ python_version }}",
-          "python3-distutils={{ python_version }}"]
+    pkg: software-properties-common
     state: present
+
+- name: Add Deadsnakes PPA
+  apt_repository:
+    repo: ppa:deadsnakes/ppa
+
+- name: Install Python{{ python_version }}
+  apt:
+    pkg: ["python{{ python_version }}",
+          "python{{ python_version }}-dev",
+          "python{{ python_version }}-distutils"]
+    state: present
+
+- name: Replace default Python3
+  alternatives:
+    name: python
+    link: /usr/bin/python3
+    path: /usr/bin/python{{ python_version }}
+
+- name: Download get-pip.py
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+
+- name: Install pip
+  command: "python{{ python_version }} /tmp/get-pip.py"
+  become: yes
 
 - name: Install old setuptools with use_2to3 support
   pip: name=setuptools

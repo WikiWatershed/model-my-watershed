@@ -8,10 +8,20 @@ unless Vagrant.has_plugin?("vagrant-disksize")
   raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
 end
 
-# We need to stay on Ansible 2.8 because the version_compare filter was removed
-# in 2.9.
-# https://github.com/ansible/ansible/issues/64174#issuecomment-548639160
-ANSIBLE_VERSION = "2.8.*"
+ANSIBLE_VERSION = "2.10.*"
+PYTHON_INSTALL_CMD = %Q{
+  sudo add-apt-repository ppa:deadsnakes/ppa && \
+  sudo apt-get update && \
+  sudo apt-get install -y \
+    software-properties-common \
+    python3.10 \
+    python3.10-apt \
+    python3.10-dev \
+    python3.10-distutils && \
+  sudo rm -f /usr/bin/python3 && \
+  sudo ln -s /usr/bin/python3.10 /usr/bin/python3 && \
+  curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
+}
 
 if ["up", "provision", "status"].include?(ARGV.first)
   require_relative "vagrant/ansible_galaxy_helper"
@@ -81,7 +91,7 @@ Vagrant.configure("2") do |config|
     services.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
+      ansible.pip_install_cmd = PYTHON_INSTALL_CMD
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -137,7 +147,7 @@ Vagrant.configure("2") do |config|
     worker.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
+      ansible.pip_install_cmd = PYTHON_INSTALL_CMD
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -181,7 +191,7 @@ Vagrant.configure("2") do |config|
     app.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
+      ansible.pip_install_cmd = PYTHON_INSTALL_CMD
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -209,7 +219,7 @@ Vagrant.configure("2") do |config|
     tiler.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
+      ansible.pip_install_cmd = PYTHON_INSTALL_CMD
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
