@@ -1,6 +1,6 @@
 {
   "launch_in_ci": [
-    "Firefox"
+    "Chromium"
   ],
   "test_page": "test.html"
 }
