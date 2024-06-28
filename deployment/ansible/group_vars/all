@@ -26,7 +26,7 @@ postgis_package_version: "3.4*pgdg22.04+1"
 
 daemontools_version: "1:0.76-7"
 
-python_version: "3.8.*"
+python_version: "3.10.*"
 ansible_python_interpreter: "/usr/bin/python3"
 
 yarn_version: "1.19.*"
@@ -56,8 +56,7 @@ nginx_cache_dir: "/var/cache/nginx"
 
 enabled_features: ''
 
-llvmlite_version: "0.37.0"
-numba_version: "0.54.0"
-phantomjs_version: "2.1.*"
+llvmlite_version: "0.38.*"
+numba_version: "0.55.*"
 
 redis_version: "5:6.0.*"
