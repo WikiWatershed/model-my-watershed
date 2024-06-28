@@ -2,16 +2,16 @@
 - name: Install canvas rendering dependencies
   apt:
     pkg: ["libcairo2-dev=1.16.*",
-          "libpango1.0-dev=1.44.*",
+          "libpango1.0-dev=1.50.*",
           "libjpeg8-dev=8c-*",
           "libgif-dev=5.1.*"]
     state: present
 
 - name: Install Mapnik dependencies
   apt:
-    pkg: ["libmapnik3.0=3.0.*",
-          "libmapnik-dev=3.0.*",
-          "mapnik-utils=3.0.*"]
+    pkg: ["libmapnik3.1=3.1.*",
+          "libmapnik-dev=3.1.*",
+          "mapnik-utils=3.1.*"]
     state: present
 
 - name: Install Windshaft JavaScript dependencies

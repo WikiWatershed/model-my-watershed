@@ -54,7 +54,7 @@ MMW_EXTRA_VARS = {
 }
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04"
+  config.vm.box = "bento/ubuntu-22.04"
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
