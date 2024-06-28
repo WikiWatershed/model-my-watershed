@@ -1,5 +1,6 @@
 ---
-- name: Install Docker Compose
-  pip:
-    name: docker-compose
-    version: "{{ docker_compose_version }}"
+- name: Add mmw user to docker group
+  user: name=mmw
+        append=yes
+        groups=docker
+        state=present
