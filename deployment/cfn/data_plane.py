@@ -195,7 +195,7 @@ class DataPlane(StackNode):
             bastion_ami_id = self.get_input('BastionHostAMI')
         except MKUnresolvableInputError:
             filters = {'name':
-                       'ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*',
+                       'ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*',
                        'architecture': 'x86_64',
                        'block-device-mapping.volume-type': 'gp2',
                        'root-device-type': 'ebs',
