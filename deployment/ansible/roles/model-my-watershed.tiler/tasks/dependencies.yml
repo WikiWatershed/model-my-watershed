@@ -15,7 +15,7 @@
     state: present
 
 - name: Install Windshaft JavaScript dependencies
-  command: sudo npm install --unsafe-perm
+  command: npm install --unsafe-perm
   args:
     chdir: "{{ tiler_home }}"
-  become: False
+  become: True
