@@ -110,6 +110,7 @@ POSTGIS_VERSION = tuple(
 CELERY_BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_IMPORTS = (
     # Submodule task is not always autodiscovered
