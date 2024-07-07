@@ -6,9 +6,6 @@ After=network.target
 User=mmw
 WorkingDirectory={{ rwd_data_path }}
 ExecStart=docker run --rm --volume "{{ rwd_data_path }}:{{ rwd_data_path }}:ro" --publish "{{ rwd_port }}:{{ rwd_port }}" "{{ rwd_docker_image }}"
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=mmw-rwd
 
 [Install]
 {% if ['development', 'test'] | some_are_in(group_names) -%}
