@@ -16,8 +16,6 @@
   version: 0.3.0
 - src: azavea.redis
   version: 0.1.0
-- src: azavea.phantomjs
-  version: 0.1.0
 - src: azavea.build-essential
   version: 0.1.0
 - src: azavea.java

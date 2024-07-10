@@ -4,21 +4,10 @@
         state=directory
 
 - name: Configure RWD service definition
-  docker_compose:
-    project_name: mmw
-    state: present
-    definition:
-      version: "3"
-      services:
-        mmw-rwd:
-          image: "{{ rwd_docker_image }}"
-          ports:
-            - "{{ rwd_port }}:{{ rwd_port }}"
-          volumes:
-            - "{{ rwd_data_path }}:{{ rwd_data_path }}:ro"
-          restart: always
-          userns_mode: "host"
-          logging:
-            driver: syslog
-            options:
-              tag: mmw-rwd
+  template: src=systemd-rwd.service.j2
+            dest=/etc/systemd/system/mmw-rwd.service
+  notify:
+    - Restart RWD service
+
+- name: Enable RWD service
+  systemd: name=mmw-rwd.service enabled=yes state=started daemon_reload=yes
