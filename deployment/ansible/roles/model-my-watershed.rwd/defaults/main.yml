@@ -2,7 +2,7 @@
 rwd_data_path: "/opt/rwd-data"
 rwd_host: "localhost"
 rwd_port: 5000
-rwd_docker_image: "quay.io/wikiwatershed/rwd:2.0.0"
+rwd_docker_image: "ghcr.io/wikiwatershed/rwd:3.0.0"
 
 app_config:
   RWD_HOST: "{{ rwd_host }}"
