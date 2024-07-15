@@ -185,6 +185,46 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 
 
 @shared_task(throws=Exception)
+def analyze_global_land(result, year):
+    if 'error' in result:
+        raise Exception(f'[analyze_global_land_{year}] {result["error"]}')
+
+    histogram = parse(result['result'])
+    pixel_size = result['pixel_size']
+
+    # Count up all the legitimate IO LULC classes
+    # This excludes NODATA which is IO LULC 0
+    total_count = sum(
+        [
+            count
+            for ioclass, count in histogram.items()
+            if ioclass in layer_classmaps.IO_LULC
+        ]
+    )
+
+    categories = []
+
+    for ioclass, (code, name) in layer_classmaps.IO_LULC.items():
+        categories.append(
+            {
+                'area': histogram.get(ioclass, 0) * pixel_size,
+                'code': code,
+                'coverage': float(histogram.get(ioclass, 0)) / total_count,
+                'ioclass': ioclass,
+                'type': name,
+            }
+        )
+
+    return {
+        'survey': {
+            'name': f'global_land_io_{year}',
+            'displayName': f'Global Land Use/Cover {year}',
+            'categories': categories,
+        }
+    }
+
+
+@shared_task(throws=Exception)
 def analyze_soil(result, area_of_interest=None):
     if 'error' in result:
         raise Exception(f'[analyze_soil] {result["error"]}')

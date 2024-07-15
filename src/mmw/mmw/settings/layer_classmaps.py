@@ -55,7 +55,7 @@ PROTECTED_LANDS = {
 # Map for the Impact Observatory Land Use Land Classification scheme
 # https://www.impactobservatory.com/maps-for-good/
 IO_LULC = {
-    0: ['no_data', 'No Data'],
+    # 0: ['no_data', 'No Data'],
     1: ['water', 'Water'],
     2: ['trees', 'Trees'],
     4: ['flooded_vegetation', 'Flooded vegetation'],
