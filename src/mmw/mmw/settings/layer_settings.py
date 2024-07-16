@@ -96,6 +96,22 @@ LAYER_GROUPS = {
     ],
     'coverage': [
         {
+            'display': 'IO Global LULC 2023',
+            'code': 'io-lulc-2023',
+            'css_class_prefix': 'io-lulc-2023 nlcd',
+            'short_display': 'IO LULC 2023',
+            'helptext': 'Global land use/land cover dataset produced by '
+                        'Impact Observatory, Microsoft, and Esri, derived from '
+                        'ESA Sentinel-2 imagery at 10 meter resolution.',
+            'url': 'https://{s}.tiles.azavea.com/io-lulc-2023-10m/{z}/{x}/{y}/0695d32d7723e4c3b53f1ec897e108282dd8ae2c919250f333f4600fe78ebbed.png',
+            'maxNativeZoom': 8,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
             'display': 'Land Use/Cover 2019 (NLCD19)',
             'code': 'nlcd-2019_2019',
             'css_class_prefix': 'nlcd-2019-30m nlcd',
