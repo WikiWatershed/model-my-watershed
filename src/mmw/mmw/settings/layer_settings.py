@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
+from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS, IO_LULC
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -98,7 +98,7 @@ LAYER_GROUPS = {
         {
             'display': 'IO Global LULC 2023',
             'code': 'io-lulc-2023',
-            'css_class_prefix': 'io-lulc-2023 nlcd',
+            'css_class_prefix': 'io-lulc-2023 io-lulc',
             'short_display': 'IO LULC 2023',
             'helptext': 'Global land use/land cover dataset produced by '
                         'Impact Observatory, Microsoft, and Esri, derived from '
@@ -108,7 +108,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'legend_mapping': { key: names[1] for key, names in IO_LULC.items() },
             'big_cz': True,
         },
         {
