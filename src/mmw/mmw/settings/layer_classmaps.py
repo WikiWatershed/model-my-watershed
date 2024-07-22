@@ -51,3 +51,18 @@ PROTECTED_LANDS = {
     11: ['con_ease', 'Conservation Easement'],
     12: ['ag_ease', 'Agricultural Easement'],
 }
+
+# Map for the Impact Observatory Land Use Land Classification scheme
+# https://www.impactobservatory.com/maps-for-good/
+IO_LULC = {
+    # 0: ['no_data', 'No Data'],
+    1: ['water', 'Water'],
+    2: ['trees', 'Trees'],
+    4: ['flooded_vegetation', 'Flooded vegetation'],
+    5: ['crops', 'Crops'],
+    7: ['built_area', 'Built area'],
+    8: ['bare_ground', 'Bare ground'],
+    9: ['snow_ice', 'Snow/ice'],
+    10: ['clouds', 'Clouds'],
+    11: ['rangeland', 'Rangeland'],
+}

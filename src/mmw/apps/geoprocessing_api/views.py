@@ -37,7 +37,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
 from apps.modeling.serializers import AoiSerializer
 from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
-from apps.geoprocessing_api import exceptions, schemas, tasks
+from apps.geoprocessing_api import exceptions, schemas, stac, tasks
 from apps.geoprocessing_api.calcs import huc12s_for_huc, huc12_for_point
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
@@ -440,6 +440,136 @@ def start_analyze_land(request, nlcd_year, format=None):
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
                             layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_global_land(request, year, format=None):
+    """
+    Starts a job to produce a land-use histogram for a given area and year.
+
+    This endpoint supports year values of 2017, 2018, 2019, 2020, 2021, 2022,
+    and 2023.
+    
+    This endpoint supports global data, as opposed to analyze_land which only
+    works with the Continental United States (CONUS). The underlying datasource
+    is Impact Observatory's Global Annual LULC layer hosted on AWS Open Registry.  # NOQA
+
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Global Land Use/Cover 2019",
+                "name": "global_land_io_2019",
+                "categories": [
+                    {
+                        "area": 14941947.428126818,
+                        "code": "water",
+                        "coverage": 0.02144532388706757,
+                        "ioclass": 1,
+                        "type": "Water"
+                    },
+                    {
+                        "area": 109588951.93420613,
+                        "code": "trees",
+                        "coverage": 0.15728676465889277,
+                        "ioclass": 2,
+                        "type": "Trees"
+                    },
+                    {
+                        "area": 48464.99853478383,
+                        "code": "flooded_vegetation",
+                        "coverage": 0.00006955904481421345,
+                        "ioclass": 4,
+                        "type": "Flooded vegetation"
+                    },
+                    {
+                        "area": 29756139.065063003,
+                        "code": "crops",
+                        "coverage": 0.042707287182504744,
+                        "ioclass": 5,
+                        "type": "Crops"
+                    },
+                    {
+                        "area": 488978611.8600828,
+                        "code": "built_area",
+                        "coverage": 0.7018030785899226,
+                        "ioclass": 7,
+                        "type": "Built area"
+                    },
+                    {
+                        "area": 535341.2912358101,
+                        "code": "bare_ground",
+                        "coverage": 0.0007683447847676015,
+                        "ioclass": 8,
+                        "type": "Bare ground"
+                    },
+                    {
+                        "area": 0,
+                        "code": "snow_ice",
+                        "coverage": 0,
+                        "ioclass": 9,
+                        "type": "Snow/ice"
+                    },
+                    {
+                        "area": 0,
+                        "code": "clouds",
+                        "coverage": 0,
+                        "ioclass": 10,
+                        "type": "Clouds"
+                    },
+                    {
+                        "area": 52896720.20292212,
+                        "code": "rangeland",
+                        "coverage": 0.07591964185203046,
+                        "ioclass": 11,
+                        "type": "Rangeland"
+                    }
+                ]
+            }
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+
+    filter = {
+        "op": "like",
+        "args": [{"property": "id"}, f"%-{year}"],
+    }
+
+    # TODO Implement caching
+
+    return start_celery_job([
+        stac.query_histogram.s(
+            area_of_interest,
+            url='https://api.impactobservatory.com/stac-aws',
+            collection='io-10m-annual-lulc',
+            asset='supercell',
+            filter=filter
+        ),
+        stac.format_as_mmw_geoprocessing.s(),
+        tasks.analyze_global_land.s(year),
     ], area_of_interest, user, messages=msg)
 
 

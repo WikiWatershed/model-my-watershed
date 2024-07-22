@@ -78,6 +78,24 @@ $nlcdColors: (
   }
 }
 
+$ioLulcColors: (
+    1: #419bdf,  // Water
+    2: #397d49,  // Trees
+    4: #7a87c6,  // Flooded vegetation
+    5: #e49635,  // Crops
+    7: #c4281b,  // Built area
+    8: #a59b8f,  // Bare ground
+    9: #a8ebff,  // Snow/ice
+    10: #616161, // Clouds
+    11: #e3e2c3, // Rangeland
+);
+
+@each $id, $color in $ioLulcColors {
+  .io-lulc-#{$id} {
+    background-color: $color;
+  }
+}
+
 $protectedLandsColors: (
     pra_f: #AFB42B, /* Park or Recreation Area - Federal */
     pra_s: #C0CA33, /* Park or Recreation Area - State */
