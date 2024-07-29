@@ -34,7 +34,15 @@ def query_histogram(geojson, url, collection, asset, filter):
     # method, using the first image for overlapping pixels.
     tiffs = sorted(tiffs)
 
-    # TODO Handle empty tiff list
+    # Raise error if no overlapping tiffs are found
+    if not tiffs:
+        return {
+            'error': (
+                f'No overlapping tiffs found in collection {collection} '
+                f'with filter {filter} '
+                f'with AoI {geojson[:255]} ...'
+            )
+        }
 
     # Find the Albers Equal Area CRS for this AoI
     dst_crs = get_albers_crs_for_aoi(aoi)
