@@ -1,4 +1,6 @@
 from celery import shared_task
+from django.core.cache import cache
+from django.conf import settings
 from pystac_client import Client
 from rasterio.coords import BoundingBox
 from rasterio.enums import Resampling
@@ -18,7 +20,15 @@ import tempfile
 
 
 @shared_task
-def query_histogram(geojson, url, collection, asset, filter):
+def query_histogram(geojson, url, collection, asset, filter, cachekey=''):
+    # Check if cached and return that if possible
+    stac_cachekey = ''
+    if settings.GEOP['cache'] and cachekey:
+        stac_cachekey = f'stac__{collection}_{cachekey}'
+        cached = cache.get(stac_cachekey)
+        if cached:
+            return cached
+
     aoi = shape(json.loads(geojson))
 
     # Get list of intersecting tiffs from catalog
@@ -80,10 +90,16 @@ def query_histogram(geojson, url, collection, asset, filter):
     for temp_file in clips:
         os.remove(temp_file)
 
-    return {
+    result = {
         'result': histogram,
         'pixel_size': pixel_size,
     }
+
+    # Cache if appropriate
+    if stac_cachekey:
+        cache.set(stac_cachekey, result, None)
+
+    return result
 
 
 @shared_task

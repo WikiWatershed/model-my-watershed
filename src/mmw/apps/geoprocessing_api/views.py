@@ -569,7 +569,7 @@ def start_analyze_global_land(request, year, format=None):
         "args": [{"property": "id"}, f"%-{year}"],
     }
 
-    # TODO Implement caching
+    cachekey = f'{wkaoi}_{year}' if wkaoi else ''
 
     return start_celery_job([
         stac.query_histogram.s(
@@ -577,7 +577,8 @@ def start_analyze_global_land(request, year, format=None):
             url='https://api.impactobservatory.com/stac-aws',
             collection='io-10m-annual-lulc',
             asset='supercell',
-            filter=filter
+            filter=filter,
+            cachekey=cachekey
         ),
         stac.format_as_mmw_geoprocessing.s(),
         tasks.analyze_global_land.s(year),
