@@ -24,6 +24,12 @@
     }
   }
 
+  @each $id, $color in $ioLulcColors {
+    .io-lulc-fill-#{$id} {
+      fill: $color;
+    }
+  }
+
   @each $id, $color in $protectedLandsColors {
     .protected-lands-fill-#{$id} {
       fill: $color;

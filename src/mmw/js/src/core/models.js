@@ -797,6 +797,10 @@ var ProtectedLandsCensusCollection = Backbone.Collection.extend({
     comparator: 'class_id'
 });
 
+var GlobalLandUseCensusCollection = Backbone.Collection.extend({
+    comparator: 'ioclass'
+});
+
 var SoilCensusCollection = Backbone.Collection.extend({
     comparator: 'code'
 });
@@ -915,6 +919,7 @@ module.exports = {
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,
     ProtectedLandsCensusCollection: ProtectedLandsCensusCollection,
+    GlobalLandUseCensusCollection: GlobalLandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
     ClimateCensusCollection: ClimateCensusCollection,

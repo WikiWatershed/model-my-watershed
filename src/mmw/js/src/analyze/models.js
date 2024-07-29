@@ -294,6 +294,14 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     enabledForCatalogMode: true
                 },
                 {
+                    name: "global_land_io_2023",
+                    displayName: "Global Annual LULC 2023",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2023",
+                    lazy: true,
+                },
+                {
                     name: "protected_lands",
                     displayName: "Protected lands distribution",
                     area_of_interest: aoi,
