@@ -550,6 +550,17 @@ def start_analyze_global_land(request, year, format=None):
 
     </details>
     """
+    # Validate year
+    AVAILABLE_IO_YEARS = [
+        '2017', '2018', '2019', '2020', '2021', '2022', '2023'
+    ]
+
+    if year not in AVAILABLE_IO_YEARS:
+        raise ValidationError(
+            f'Year {year} is not available for analysis. '
+            f'Only the following are: {", ".join(AVAILABLE_IO_YEARS)}.'
+        )
+
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 

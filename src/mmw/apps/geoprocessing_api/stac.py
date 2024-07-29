@@ -19,8 +19,6 @@ import tempfile
 
 @shared_task
 def query_histogram(geojson, url, collection, asset, filter):
-    # TODO Validate inputs
-
     aoi = shape(json.loads(geojson))
 
     # Get list of intersecting tiffs from catalog
