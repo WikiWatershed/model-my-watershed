@@ -305,14 +305,16 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     displayName: "DRB 2100 land forecast (Centers)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/centers"
+                    taskName: "analyze/drb-2100-land/centers",
+                    lazy: true,
                 },
                 {
                     name: "drb_2100_land_corridors",
                     displayName: "DRB 2100 land forecast (Corridors)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/corridors"
+                    taskName: "analyze/drb-2100-land/corridors",
+                    lazy: true,
                 },
             ]
         },
