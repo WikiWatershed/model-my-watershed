@@ -550,6 +550,17 @@ def start_analyze_global_land(request, year, format=None):
 
     </details>
     """
+    # Validate year
+    AVAILABLE_IO_YEARS = [
+        '2017', '2018', '2019', '2020', '2021', '2022', '2023'
+    ]
+
+    if year not in AVAILABLE_IO_YEARS:
+        raise ValidationError(
+            f'Year {year} is not available for analysis. '
+            f'Only the following are: {", ".join(AVAILABLE_IO_YEARS)}.'
+        )
+
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
@@ -558,7 +569,7 @@ def start_analyze_global_land(request, year, format=None):
         "args": [{"property": "id"}, f"%-{year}"],
     }
 
-    # TODO Implement caching
+    cachekey = f'{wkaoi}_{year}' if wkaoi else ''
 
     return start_celery_job([
         stac.query_histogram.s(
@@ -566,7 +577,8 @@ def start_analyze_global_land(request, year, format=None):
             url='https://api.impactobservatory.com/stac-aws',
             collection='io-10m-annual-lulc',
             asset='supercell',
-            filter=filter
+            filter=filter,
+            cachekey=cachekey
         ),
         stac.format_as_mmw_geoprocessing.s(),
         tasks.analyze_global_land.s(year),
