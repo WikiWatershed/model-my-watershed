@@ -1278,6 +1278,8 @@ var ChartView = Marionette.ItemView.extend({
         var name = this.model.get('name');
         if (name.startsWith('land_') || name.startsWith('drb_2100_land_')) {
             return 'nlcd-fill-' + item.nlcd;
+        } else if (name.startsWith('global_land_io_')) {
+            return 'io-lulc-fill-' + item.ioclass;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
         } else if (name === 'protected_lands') {
@@ -1289,6 +1291,7 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var self = this,
+            name = this.model.get('name'),
             chartEl = this.$el.find('.bar-chart').get(0),
             data = _.map(this.collection.toJSON(), function(model) {
                 return {
@@ -1303,6 +1306,11 @@ var ChartView = Marionette.ItemView.extend({
                isPercentage: true,
                barClasses: _.map(data, 'class')
            };
+        
+        // Custom margins as needed
+        if (name.startsWith('global_land_io_')) {
+            chartOptions.margin = { left: 160 };
+        }
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
@@ -1425,6 +1433,15 @@ var LandResultView  = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
     },
+    onShowGlobalLandUse: function(taskName) {
+        var year = taskName.substring(15), // global_land_io_2023 => 2023
+            title = 'Global Annual LULC ' + year,
+            source = 'Impact Observatory via AWS Open Registry',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['io-lulc-' + year];
+        this.showAnalyzeResults(coreModels.GlobalLandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
     onShowFutureLandCenters: function() {
         var title = 'DRB 2100 land forecast (Centers)',
             source = 'DRB Future Land Cover - Shippensburg U.',
@@ -1455,8 +1472,12 @@ var LandResultView  = AnalyzeResultView.extend({
                 this.onShowFutureLandCorridors();
                 break;
             default:
-                // e.g. taskName === land_2019_2011
-                this.onShowNlcd(taskName);
+                if (taskName.startsWith('global')) {
+                    this.onShowGlobalLandUse(taskName);
+                } else {
+                    // e.g. taskName === land_2019_2011
+                    this.onShowNlcd(taskName);
+                }
         }
     }
 });
@@ -1725,6 +1746,7 @@ var AnalyzeResultViews = {
     land_2019_2006: LandResultView,
     land_2019_2001: LandResultView,
     land_2011_2011: LandResultView,
+    global_land_io_2023: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,

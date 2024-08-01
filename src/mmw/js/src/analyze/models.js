@@ -294,6 +294,14 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     enabledForCatalogMode: true
                 },
                 {
+                    name: "global_land_io_2023",
+                    displayName: "Global Annual LULC 2023",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2023",
+                    lazy: true,
+                },
+                {
                     name: "protected_lands",
                     displayName: "Protected lands distribution",
                     area_of_interest: aoi,
@@ -305,14 +313,16 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     displayName: "DRB 2100 land forecast (Centers)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/centers"
+                    taskName: "analyze/drb-2100-land/centers",
+                    lazy: true,
                 },
                 {
                     name: "drb_2100_land_corridors",
                     displayName: "DRB 2100 land forecast (Corridors)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/corridors"
+                    taskName: "analyze/drb-2100-land/corridors",
+                    lazy: true,
                 },
             ]
         },
