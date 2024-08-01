@@ -643,7 +643,7 @@ LAYER_GROUPS = {
             'url': 'https://{s}.tiles.azavea.com/TDX_streamnet_7020038340_02/{z}/{x}/{y}.pbf',  # NOQA
         },
         {
-            'code': 'TDX_streamnet_7020038340_01',
+            'code': 'TDX_streamnet_7020038340_03',
             'display': 'TDX Streamnet 7020038340 - Ordered',
             'minZoom': 0,
             'maxNativeZoom': 13,
