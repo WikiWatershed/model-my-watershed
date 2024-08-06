@@ -10,14 +10,14 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 import os
 
-from boto.utils import get_instance_metadata
+from ec2_metadata import ec2_metadata
 
 from mmw.settings.base import *  # NOQA
 
 
-instance_metadata = get_instance_metadata(timeout=5)
+ec2_local_ip = ec2_metadata.private_ipv4
 
-if not instance_metadata:
+if not ec2_local_ip:
     raise ImproperlyConfigured('Unable to access the instance metadata')
 
 
@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
 
 # ELBs use the instance IP in the Host header and ALLOWED_HOSTS checks against
 # the Host header.
-ALLOWED_HOSTS.append(instance_metadata['local-ipv4'])
+ALLOWED_HOSTS.append(ec2_local_ip)
 # END HOST CONFIGURATION
 
 # FILE STORAGE CONFIGURATION
