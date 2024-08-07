@@ -137,6 +137,9 @@ module.exports = function(opts) {
 
     app.cacheTile = function(req, tile) {
         try {
+            // TODO: Fix caching and turn this back on
+            return;
+
             // Skip caching if environment not setup for it
             if (req.headers.host === 'localhost' || !opts.s3Cache.bucket) {
                 return;
