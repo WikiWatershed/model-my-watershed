@@ -97,7 +97,11 @@ class TileDeliveryNetwork(StackNode):
                 DefaultCacheBehavior=cf.DefaultCacheBehavior(
                     ForwardedValues=cf.ForwardedValues(QueryString=True),
                     TargetOriginId='tileOriginId',
-                    ViewerProtocolPolicy='allow-all'
+                    ViewerProtocolPolicy='allow-all',
+                    # Set TTLs to 0 so we don't cache S3 responses
+                    MinTTL=0,
+                    DefaultTTL=0,
+                    MaxTTL=0
                 ),
                 Enabled=True
             )
@@ -120,7 +124,11 @@ class TileDeliveryNetwork(StackNode):
                 DefaultCacheBehavior=cf.DefaultCacheBehavior(
                     ForwardedValues=cf.ForwardedValues(QueryString=True),
                     TargetOriginId='tileOriginId',
-                    ViewerProtocolPolicy='allow-all'
+                    ViewerProtocolPolicy='allow-all',
+                    # Set TTLs to 0 so we don't cache S3 responses
+                    MinTTL=0,
+                    DefaultTTL=0,
+                    MaxTTL=0
                 ),
                 Enabled=True
             )
