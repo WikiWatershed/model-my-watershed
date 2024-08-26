@@ -155,27 +155,53 @@ var interactivity = {
         zoom = req.params.z;
         tableName = req.params.table;
         tableId = req.params.tableId;
-        stream_order = 0;  // All streams
-
-        if (tableName === tables.drb_streams_v2.name) {
-            // drb_zoom_levels: { zoomLevel : stream_order }
-            drb_zoom_levels = {
-                1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
-                11:3, 12:2, 13:0, 14:0, 15:0, 16:0, 17:0, 18: 0
-            };
-
-            stream_order = zoom in drb_zoom_levels ? drb_zoom_levels[zoom] : 0;
-        } else {
-            if (zoom <= 5) {
-                stream_order = 7;
-            } else if (zoom <= 6) {
-                stream_order = 6;
-            } else if (zoom <= 8) {
-                stream_order = 5;
-            } else if (zoom <= 9) {
-                stream_order = 4;
+        minStreamsByLevel = {
+            [tables.drb_streams_v2.name]: {
+                // Zoom Level: Lowest Stream Order to Render
+                1: 7,
+                2: 7,
+                3: 7,
+                4: 7,
+                5: 7,
+                6: 6,
+                7: 6,
+                8: 5,
+                9: 5,
+                10: 4,
+                11: 3,
+                12: 2,
+                13: 0,
+            },
+            [tables.tdxhydro_streams_v1.name]: {
+                1: 6,
+                2: 6,
+                3: 6,
+                4: 6,
+                5: 5,
+                6: 5,
+                7: 4,
+                8: 4,
+                9: 3,
+                10: 3,
+                11: 2,
+                12: 1,
+                13: 1,
+            },
+            default: {
+                1: 7,
+                2: 7,
+                3: 7,
+                4: 7,
+                5: 7,
+                6: 6,
+                7: 5,
+                8: 5,
+                9: 4,
+                10: 0, 
             }
-        }
+        };
+        minStreamsForTable = tableName in minStreamsByLevel ? minStreamsByLevel[tableName] : minStreamsByLevel.default;
+        stream_order = minStreamsForTable[zoom] || 0;
 
         var caseSql = function(mapping, field) {
             var sql = []
