@@ -59,7 +59,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV["MMW_SERVICES_IP"] || "33.33.34.30"
-    services.disksize.size = '64GB'
+    services.disksize.size = '128GB'
 
     # PostgreSQL
     services.vm.network "forwarded_port", **{
