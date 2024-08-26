@@ -651,6 +651,12 @@ LAYER_GROUPS = {
             'vectorType': True,
             'url': 'https://{s}.tiles.azavea.com/TDX_streamnet_7020038340_01/{z}/{x}/{y}.pbf',  # NOQA
         },
+        {
+            'code': 'tdxhydro_streams_v1',
+            'display': ('TDX Hydro'),
+            'table_name': 'tdxhydro',
+            'minZoom': 5,
+        },
     ],
 }
 

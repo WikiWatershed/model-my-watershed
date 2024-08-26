@@ -94,6 +94,10 @@ var interactivity = {
             name: 'nhdflowlinehr',
             style: styles.streams,
         },
+        tdxhydro_streams_v1: {
+            name: 'tdxhydro',
+            style: styles.streams,
+        },
         nhd_quality_tn: {
             name: 'nhd_quality_tn',
             style: styles.quality,
