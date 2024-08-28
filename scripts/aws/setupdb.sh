@@ -12,6 +12,7 @@ where options are one or more of: \n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
     -S  load/reload Hi Res stream data (very large)\n
+    -t  load/reload TDX Hydro stream data (EXTREMELY LARGE)\n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
@@ -27,12 +28,13 @@ load_boundary=false
 file_to_load=
 load_stream=false
 load_hires_stream=false
+load_tdxhydro_streams=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
 should_purge_cache=false
 
-while getopts ":hbsSdpmqcf:x:" opt; do
+while getopts ":hbsSdtpmqcf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -45,6 +47,8 @@ while getopts ":hbsSdpmqcf:x:" opt; do
             load_hires_stream=true ;;
         d)
             load_drb_streams=true ;;
+        t)
+            load_tdxhydro_streams=true ;;
         p)
             load_dep=true ;;
         m)
@@ -158,6 +162,18 @@ if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file
     FILES=("drb_streams_50.sql.gz")
     PATHS=("drb_streams_v2")
+
+    download_and_load $FILES
+    purge_tile_cache $PATHS
+fi
+
+if [ "$load_tdxhydro_streams" = "true" ] ; then
+    # Included here for completion. Given how EXTREMELY LARGE
+    # this dataset is, manually downloading first, then uncompressing
+    # with pigz, then importing may work better. Compressed dataset
+    # is about 32GB, uncompressed is about 110GB.
+    FILES=("tdxhydro.sql.gz")
+    PATHS=("tdxhydro_streams_v1")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
