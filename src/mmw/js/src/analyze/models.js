@@ -240,6 +240,15 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     taskName: "analyze/streams/nhdhr",
                     lazy: true,
                 },
+                {
+                    name: "streams_tdxhydro",
+                    displayName: "Global Medium Resolution Streams",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-streams",
+                    lazy: true,
+                    isGlobal: true,
+                },
             ]
         },
         {
