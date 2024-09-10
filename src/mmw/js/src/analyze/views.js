@@ -1381,7 +1381,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.map(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            census = new CategoriesToCensus(categories);
+            census = new CategoriesToCensus(categories),
+            activeTask = this.options.taskGroup.get('activeTask');
 
         if (pageSize) {
             census.setPageSize(pageSize);
@@ -1390,7 +1391,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         this.tableRegion.show(new AnalyzeTableView({
             units: units,
             collection: census,
-            modelName: this.model.get('name')
+            modelName: this.model.get('name'),
+            isGlobal: activeTask && activeTask.get('isGlobal'),
         }));
 
         if (AnalyzeChartView) {
