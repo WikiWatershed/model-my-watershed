@@ -3,6 +3,7 @@
 var step = require('step');
 var windshaft = require('windshaft');
 var _ = require('underscore');
+var utils = require('./utils');
 
 var MapConfig = windshaft.model.MapConfig;
 var DummyMapConfigProvider = require('windshaft/lib/windshaft/models/providers/dummy_mapconfig_provider');
@@ -84,7 +85,7 @@ MapController.prototype.tile = function(req, res) {
         },
         function mapController$finalize(err, tile, headers) {
             self.finalizeGetTileOrGrid(err, req, res, tile, headers);
-            self._app.cacheTile(req, tile);
+            utils.cacheTile(req, tile, self._app.cacheBucket);
             return null;
         },
         function finish(err) {
@@ -111,7 +112,7 @@ MapController.prototype.finalizeGetTileOrGrid = function(err, req, res, tile, he
 
         var status = err.http_status || statusFromErrorMessage(errMsg);
 
-        this._app.sendError(res, { errors: [errMsg] }, status, 'TILE', err);
+        utils.sendError(res, { errors: [errMsg] }, status, 'TILE', err);
     } else {
         res.status(200)
             // Add cache header for 30 days

@@ -3,21 +3,18 @@
 // Adapted from:
 // https://github.com/CartoDB/Windshaft/blob/1a9146e33/examples/http/server.js
 
-var debug = require('debug')('windshaft:server');
 var express = require('express');
 var RedisPool = require('redis-mpool');
 var _ = require('underscore');
 var mapnik = require('@carto/mapnik');
-var aws = require('aws-sdk');
-var stream = require('stream');
 
 // Express Middleware
 var morgan = require('morgan');
 
 var windshaft = require('windshaft');
 
-var rollbar = require('./rollbar');
 var MapController = require('./mapController.js');
+var utils = require('./utils.js');
 
 //
 // @param opts server options object. Example value:
@@ -111,59 +108,7 @@ module.exports = function(opts) {
     var mapValidatorBackend = new windshaft.backend.MapValidator(tileBackend, attributesBackend);
     var mapBackend = new windshaft.backend.Map(rendererCache, map_store, mapValidatorBackend);
 
-    app.sendError = function(res, err, statusCode, label, tolog) {
-      var olabel = '[';
-      if ( label ) {
-          olabel += label + ' ';
-      }
-      olabel += 'ERROR]';
-      if ( ! tolog ) {
-          tolog = err;
-      }
-      var log_msg = olabel + ' -- ' + statusCode + ': ' + tolog;
-      //if ( tolog.stack ) log_msg += '\n' + tolog.stack;
-      debug(log_msg); // use console.log for statusCode != 500 ?
-      // If a callback was requested, force status to 200
-      if ( res.req ) {
-        // NOTE: res.req can be undefined when we fake a call to
-        //       ourself from POST to /layergroup
-        if ( res.req.query.callback ) {
-            statusCode = 200;
-        }
-      }
-
-      res.status(statusCode).send(err);
-    };
-
-    app.cacheTile = function(req, tile) {
-        try {
-            // Skip caching if environment not setup for it
-            if (req.headers.host === 'localhost' || !opts.s3Cache.bucket) {
-                return;
-            }
-
-            var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
-                s3Obj = new aws.S3({params: {Bucket: opts.s3Cache.bucket, Key: cleanUrl}}),
-                body;
-
-            if (Buffer.isBuffer(tile)) {
-                body = new stream.PassThrough();
-                body.end(tile);
-            } else {
-                body = JSON.stringify(tile);
-            }
-
-            if (body) {
-                s3Obj.upload({Body: body}, function(err) {
-                    if (err) {
-                        throw (err);
-                    }
-                });
-            }
-        } catch (ex) {
-            rollbar.handleError(ex, req);
-        }
-    };
+    app.cacheBucket = opts.s3Cache.bucket;
 
     /*******************************************************************************************************************
      * Routing
@@ -180,7 +125,7 @@ module.exports = function(opts) {
     app.use(function(err, req, res, next) {
         if (err) {
             if (err.name === 'SyntaxError') {
-                app.sendError(res, { errors: [err.name + ': ' + err.message] }, 400, 'JSON', err);
+                utils.sendError(res, { errors: [err.name + ': ' + err.message] }, 400, 'JSON', err);
             } else {
                 next(err);
             }
