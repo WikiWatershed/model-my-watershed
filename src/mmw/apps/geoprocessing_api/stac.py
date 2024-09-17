@@ -11,12 +11,14 @@ from rasterio.warp import (
     transform_geom,
     reproject,
 )
-from shapely.geometry import box, mapping, shape
+from shapely.geometry import mapping, shape
 import json
 import numpy as np
 import os
 import rasterio as rio
 import tempfile
+
+from apps.geoprocessing_api.calcs import get_albers_crs_for_aoi
 
 
 @shared_task
@@ -120,32 +122,6 @@ def format_as_mmw_geoprocessing(result):
     result['result'] = formatted_histogram
 
     return result
-
-
-def get_albers_crs_for_aoi(aoi):
-    """
-    Return the Albers Equal Area Projection for the given AoI
-
-    Since we want to calculate area, we need to use an Equal Area projection,
-    but this differs based on where you are in the globe. We use rough bounding
-    boxes to see if the shape neatly fits within one of the continents. If not,
-    we fall back to a global approximation.
-    """
-
-    if aoi.within(box(-170, 15, -50, 75)):  # North America
-        return 'EPSG:5070'
-    elif aoi.within(box(-10, 34, 40, 72)):  # Europe
-        return 'EPSG:3035'
-    elif aoi.within(box(25, -10, 180, 60)):  # Asia
-        return 'EPSG:102025'
-    elif aoi.within(box(-20, -35, 55, 38)):  # Africa
-        return 'EPSG:102022'
-    elif aoi.within(box(-90, -60, -30, 15)):  # South America
-        return 'EPSG:102033'
-    elif aoi.within(box(112, -45, 155, -10)):  # Australia
-        return 'EPSG:102034'
-    else:  # Global
-        return 'EPSG:54017'  # Behrmann Equal Area Cylindrical
 
 
 def clip_and_reproject_tile(tiff, aoi, dst_crs, resampling=Resampling.nearest):
