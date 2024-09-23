@@ -9,6 +9,7 @@
 
 .sidebar-tab-header-label {
     position: relative;
+    padding: 0 4px;
     &:after {
         position: absolute;
         left: 0;
@@ -25,12 +26,11 @@
 
 .sidebar-tab-header-label-icon {
     color: rgba(0, 0, 0, 0.54);
-    margin-right: 8px;
     position: absolute;
     bottom: 2px;
     height: auto;
     text-align: center;
-    width: 100%;
+    width: calc(100% - 8px);
     font-size: 8px;
 }
 

@@ -399,18 +399,6 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                 }
             ]
         },
-        {
-            name: "catchment_water_quality",
-            displayName: "Water Qual",
-            tasks: [
-                {
-                    name: "catchment_water_quality",
-                    area_of_interest: aoi,
-                    wkaoi: wkaoi,
-                    taskName: "analyze/catchment-water-quality"
-                }
-            ]
-        },
     ];
 
     if (settings.get('data_catalog_enabled')) {
