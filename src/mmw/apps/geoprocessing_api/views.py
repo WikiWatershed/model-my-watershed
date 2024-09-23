@@ -822,6 +822,151 @@ def start_analyze_streams(request, datasource, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
+def start_analyze_global_streams(request, format=None):
+    """
+    Starts a job to display global streams & stream order within a given area of
+    interest.
+
+    Source NGA
+
+    For more information, see the [technical documentation](https://wikiwatershedorg/documentation/mmw-tech/#additional-data-layers)  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location` header
+    to poll for the job's results.
+
+    <summary>
+
+      **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "job_uuid": "cc544e74-22a4-4fd4-952c-ce2c544d1bd7",
+            "status": "complete",
+            "result": {
+                "survey": {
+                    "displayName": "Streams",
+                    "name": "streams_tdxhydro",
+                    "categories": [
+                        {
+                            "order": 1,
+                            "lengthkm": 18.289577474059765,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.09983573564269882,
+                            "avgslope": 0.0054586135619752035
+                        },
+                        {
+                            "order": 2,
+                            "lengthkm": 3.548523360878298,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.010117649720115644,
+                            "avgslope": 0.002851228156382044
+                        },
+                        {
+                            "order": 3,
+                            "lengthkm": 20.23227838302758,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.029016343773066392,
+                            "avgslope": 0.0014341609592228414
+                        },
+                        {
+                            "order": 4,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 5,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 6,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 7,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 8,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 9,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 10,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 999,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        }
+                    ]
+                }
+            },
+            "error": "",
+            "started": "2024-09-10T18:35:08.128527Z",
+            "finished": "2024-09-10T18:35:08.269810Z"
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+
+    # We are reusing the Stream Analysis code for NHD streams, which expects
+    # land use intersection results which inform what percentage of the streams
+    # are in agricultural areas. That is not available for TDX streams, so we
+    # pass in a value of None. This field will be ignored by the UI for TDX
+    # streams.
+    fake_results = {
+        'ag_stream_pct': None,
+    }
+
+    datasource = 'tdxhydro'
+
+    return start_celery_job([
+        tasks.analyze_streams.s(
+            fake_results, area_of_interest, datasource, wkaoi)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
 def start_analyze_animals(request, format=None):
     """
     Starts a job to produce counts for animals in a given area.

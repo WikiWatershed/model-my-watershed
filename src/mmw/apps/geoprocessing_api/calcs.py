@@ -8,6 +8,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.conf import settings
 from django.db import connection
 
+from shapely.geometry import box, shape
+
 from apps.modeling.mapshed.calcs import (animal_energy_units,
                                          get_point_source_table)
 
@@ -23,6 +25,32 @@ ANIMAL_DISPLAY_NAMES = {
     'dairy_cows': 'Cows, Dairy',
     'broilers': 'Chickens, Broilers',
 }
+
+
+def get_albers_crs_for_aoi(aoi):
+    """
+    Return the Albers Equal Area Projection for the given AoI
+
+    Since we want to calculate area, we need to use an Equal Area projection,
+    but this differs based on where you are in the globe. We use rough bounding
+    boxes to see if the shape neatly fits within one of the continents. If not,
+    we fall back to a global approximation.
+    """
+
+    if aoi.within(box(-170, 15, -50, 75)):  # North America
+        return 'EPSG:5070'
+    elif aoi.within(box(-10, 34, 40, 72)):  # Europe
+        return 'EPSG:3035'
+    elif aoi.within(box(25, -10, 180, 60)):  # Asia
+        return 'EPSG:102025'
+    elif aoi.within(box(-20, -35, 55, 38)):  # Africa
+        return 'EPSG:102022'
+    elif aoi.within(box(-90, -60, -30, 15)):  # South America
+        return 'EPSG:102033'
+    elif aoi.within(box(112, -45, 155, -10)):  # Australia
+        return 'EPSG:102034'
+    else:  # Global
+        return 'EPSG:54017'  # Behrmann Equal Area Cylindrical
 
 
 def animal_population(geojson):
@@ -61,6 +89,9 @@ def stream_data(results, geojson, datasource='nhdhr'):
     if datasource not in settings.STREAM_TABLES:
         raise Exception(f'Invalid stream datasource {datasource}')
 
+    aoi = shape(json.loads(geojson))
+    dst_proj = int(get_albers_crs_for_aoi(aoi)[5:])
+
     sql = f'''
         WITH stream_intersection AS (
             SELECT ST_Length(ST_Transform(
@@ -73,7 +104,7 @@ def stream_data(results, geojson, datasource='nhdhr'):
                                              ST_SetSRID(ST_GeomFromGeoJSON(%s),
                                                         4326))
                       END,
-                      5070)) AS lengthm,
+                      {dst_proj})) AS lengthm,
                    stream_order,
                    slope
             FROM {settings.STREAM_TABLES[datasource]}

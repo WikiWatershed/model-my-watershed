@@ -89,17 +89,7 @@ Vagrant.configure("2") do |config|
       ansible.extra_vars = MMW_EXTRA_VARS
     end
 
-    services.vm.provision "shell" do |s|
-      # The base box we use comes with a ~30GB disk. The physical disk is
-      # expanded to 64GB above using vagrant-disksize. The logical disk and
-      # the file system need to be expanded as well to make full use of the
-      # space. `lvextend` expands the logical disk, and `resize2fs` expands
-      # the files system.
-      s.inline = <<-SHELL
-        sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-        sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
-      SHELL
-    end
+    services.vm.provision "shell", path: "scripts/resize-disk.sh"
   end
 
   config.vm.define "worker" do |worker|

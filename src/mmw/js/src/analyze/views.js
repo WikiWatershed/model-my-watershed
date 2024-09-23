@@ -889,7 +889,8 @@ var StreamTableView = Marionette.CompositeView.extend({
             // set, not per stream order, so we use the first value for total.
             agPercent = data.first().ag_stream_pct,
             lengthInAg = totalLength * agPercent,
-            lengthInNonAg = totalLength - lengthInAg;
+            lengthInNonAg = totalLength - lengthInAg,
+            isGlobal = this.options.isGlobal;
 
         return {
             lengthUnit: lengthUnit,
@@ -897,6 +898,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,
             lengthInNonAg: lengthInNonAg,
+            isGlobal: isGlobal,
         };
     },
 });
@@ -1381,7 +1383,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.map(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            census = new CategoriesToCensus(categories);
+            census = new CategoriesToCensus(categories),
+            activeTask = this.options.taskGroup.get('activeTask');
 
         if (pageSize) {
             census.setPageSize(pageSize);
@@ -1390,7 +1393,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         this.tableRegion.show(new AnalyzeTableView({
             units: units,
             collection: census,
-            modelName: this.model.get('name')
+            modelName: this.model.get('name'),
+            isGlobal: activeTask && activeTask.get('isGlobal'),
         }));
 
         if (AnalyzeChartView) {
@@ -1708,16 +1712,24 @@ var ClimateResultView = AnalyzeResultView.extend({
 var StreamResultView = AnalyzeResultView.extend({
     onShow: function() {
         var taskName = this.model.get('name'),
-            title = taskName === 'streams_nhdhr' ?
-                    'NHD High Resolution Stream Network Statistics' :
-                    'NHD Medium Resolution Stream Network Statistics',
-            source = taskName === 'streams_nhdhr' ?
-                     'NHDplusHR' :
-                     'NHDplusV2',
+            config = {
+                streams_nhdhr: {
+                    title: 'NHD High Resolution Stream Network Statistics',
+                    source: 'NHDplusHR',
+                    associatedLayerCodes: ['nhd_streams_hr_v1'],
+                },
+                streams_nhd: {
+                    title: 'NHD Medium Resolution Stream Network Statistics',
+                    source: 'NHDplusV2',
+                    associatedLayerCodes: ['nhd_streams_v2'],
+                },
+                streams_tdxhydro: {
+                    title: 'TDX Hydro Global Stream Network Statistics',
+                    source: 'TDX-Hydro',
+                    associatedLayerCodes: ['tdxhydro_streams_v1'],
+                },
+            },
             helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
-            associatedLayerCodes = taskName === 'streams_nhdhr' ?
-                                   ['nhd_streams_hr_v1'] :
-                                   ['nhd_streams_v2'],
             chart = null,
             streamOrderHelpText = [
                 {
@@ -1735,7 +1747,9 @@ var StreamResultView = AnalyzeResultView.extend({
         });
 
         this.showAnalyzeResults(coreModels.StreamsCensusCollection, StreamTableView,
-                                chart, title,source, helpText, associatedLayerCodes);
+                                chart, config[taskName].title,
+                                config[taskName].source, helpText,
+                                config[taskName].associatedLayerCodes);
     },
 });
 
@@ -1754,6 +1768,7 @@ var AnalyzeResultViews = {
     climate: ClimateResultView,
     streams_nhd: StreamResultView,
     streams_nhdhr: StreamResultView,
+    streams_tdxhydro: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,
