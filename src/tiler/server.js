@@ -324,7 +324,7 @@ var config = {
 // Initialize tile server on port 4000
 var ws = new WindshaftServer(config);
 ws.get('/health-check', healthCheck(config));
-ws.get('/titiler/:year/:z/:x/:y.png', cachedTiTiler(config.s3Cache.bucket));
+ws.get('/titiler/:layer/:year/:z/:x/:y.png', cachedTiTiler(config.s3Cache.bucket));
 ws.listen(4000);
 ws.use(rollbar.errorHandler({ environment: stackType }));
 console.log('Starting MMW Windshaft tiler on http://localhost:4000' + config.base_url + '/:z/:x/:y.*');
