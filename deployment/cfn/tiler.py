@@ -49,6 +49,8 @@ class Tiler(StackNode):
         'TileServerAutoScalingScheduleStartRecurrence': ['global:TileServerAutoScalingScheduleStartRecurrence'],  # NOQA
         'TileServerAutoScalingScheduleEndCapacity': ['global:TileServerAutoScalingScheduleEndCapacity'],  # NOQA
         'TileServerAutoScalingScheduleEndRecurrence': ['global:TileServerAutoScalingScheduleEndRecurrence'],  # NOQA
+        'TiTilerHost': ['global:TiTilerHost'],
+        'TiTilerLayerMap': ['global:TiTilerLayerMap'],
         'SSLCertificateARN': ['global:SSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
@@ -169,6 +171,18 @@ class Tiler(StackNode):
                 Default='1',
                 Description='Tile server ASG schedule end capacity'
             ), 'TileServerAutoScalingScheduleEndCapacity')
+
+        self.titiler_host = self.add_parameter(
+            Parameter(
+                'TiTilerHost', Type='String',
+                Description='Fully qualified domain name for TiTiler-MosaicJSON service'
+            ), 'TiTilerHost')
+
+        self.titiler_layer_map = self.add_parameter(
+            Parameter(
+                'TiTilerLayerMap', Type='String',
+                Description='List of layer__year__uuid entries for TiTiler mosaic layers'
+            ), 'TiTilerLayerMap')
 
         self.ssl_certificate_arn = self.add_parameter(Parameter(
             'SSLCertificateARN', Type='String',
