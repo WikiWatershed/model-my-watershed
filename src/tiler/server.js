@@ -95,7 +95,7 @@ var interactivity = {
             style: styles.streams,
         },
         tdxhydro_streams_v1: {
-            name: 'tdxhydro',
+            name: 'tdxstreams',
             style: styles.streams,
         },
         nhd_quality_tn: {

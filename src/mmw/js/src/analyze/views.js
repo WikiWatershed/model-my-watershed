@@ -1723,7 +1723,7 @@ var StreamResultView = AnalyzeResultView.extend({
                     source: 'NHDplusV2',
                     associatedLayerCodes: ['nhd_streams_v2'],
                 },
-                streams_tdxhydro: {
+                streams_tdxstreams: {
                     title: 'TDX Hydro Global Stream Network Statistics',
                     source: 'TDX-Hydro',
                     associatedLayerCodes: ['tdxhydro_streams_v1'],
@@ -1768,7 +1768,7 @@ var AnalyzeResultViews = {
     climate: ClimateResultView,
     streams_nhd: StreamResultView,
     streams_nhdhr: StreamResultView,
-    streams_tdxhydro: StreamResultView,
+    streams_tdxstreams: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,

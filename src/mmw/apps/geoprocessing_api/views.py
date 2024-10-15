@@ -849,7 +849,7 @@ def start_analyze_global_streams(request, format=None):
             "result": {
                 "survey": {
                     "displayName": "Streams",
-                    "name": "streams_tdxhydro",
+                    "name": "streams_tdxstreams",
                     "categories": [
                         {
                             "order": 1,
@@ -950,7 +950,7 @@ def start_analyze_global_streams(request, format=None):
         'ag_stream_pct': None,
     }
 
-    datasource = 'tdxhydro'
+    datasource = 'tdxstreams'
 
     return start_celery_job([
         tasks.analyze_streams.s(

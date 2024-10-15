@@ -277,13 +277,13 @@
   }
 }
 
-#tdxhydro {
+#tdxstreams {
   line-color: @streamColor;
   line-join: round;
   line-cap: round;
 }
 
-#tdxhydro[zoom<=4] {
+#tdxstreams[zoom<=4] {
   [stream_order=10] {
     line-width: 5.0 * @zoomBase;
   }
@@ -295,7 +295,7 @@
   }
 }
 
-#tdxhydro[zoom>=5][zoom<=6] {
+#tdxstreams[zoom>=5][zoom<=6] {
   [stream_order=10] {
     line-width: 7.0 * @zoomBase;
   }
@@ -307,7 +307,7 @@
   }
 }
 
-#tdxhydro[zoom>=9][zoom<=10] {
+#tdxstreams[zoom>=9][zoom<=10] {
   [stream_order>=9] {
     line-width: 14.0 * @zoomBase;
   }
@@ -322,7 +322,7 @@
   }
 }
 
-#tdxhydro[zoom>=11][zoom<=12] {
+#tdxstreams[zoom>=11][zoom<=12] {
   [stream_order>=9] {
     line-width: 18.0 * @zoomBase;
   }
@@ -343,7 +343,7 @@
   }
 }
 
-#tdxhydro[zoom>=13] {
+#tdxstreams[zoom>=13] {
   [stream_order>=9] {
     line-width: 18.0 * @zoomBase;
   }
