@@ -284,79 +284,118 @@
 }
 
 #tdxstreams[zoom<=4] {
-  [stream_order=10] {
-    line-width: 5.0 * @zoomBase;
-  }
-  [stream_order=9] {
-    line-width: 3.0 * @zoomBase;
-  }
-  [stream_order<=8] {
+  [stream_order=8] {
     line-width: 2.0 * @zoomBase;
+  }
+  [stream_order=7] {
+    line-width: 1.0 * @zoomBase;
+  }
+  [stream_order=6] {
+    line-width: 0.5 * @zoomBase;
   }
 }
 
 #tdxstreams[zoom>=5][zoom<=6] {
-  [stream_order=10] {
-    line-width: 7.0 * @zoomBase;
+  [stream_order=8] {
+    line-width: 3.0 * @zoomBase;
   }
-  [stream_order=9] {
+  [stream_order=7] {
+    line-width: 2.0 * @zoomBase;
+  }
+  [stream_order=6] {
+    line-width: 1.0 * @zoomBase;
+  }
+  [stream_order=5] {
+    line-width: 0.5 * @zoomBase;
+  }
+}
+
+#tdxstreams[zoom>=7][zoom<=8] {
+  [stream_order=8] {
     line-width: 4.0 * @zoomBase;
   }
-  [stream_order<=8] {
+  [stream_order=7] {
     line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=6] {
+    line-width: 2.0 * @zoomBase;
+  }
+  [stream_order=5] {
+    line-width: 1.0 * @zoomBase;
+  }
+  [stream_order=4] {
+    line-width: 0.5 * @zoomBase;
   }
 }
 
 #tdxstreams[zoom>=9][zoom<=10] {
-  [stream_order>=9] {
-    line-width: 14.0 * @zoomBase;
-  }
-  [stream_order<=8][stream_order>=6] {
-    line-width: 10.0 * @zoomBase;
-  }
-  [stream_order<=5][stream_order>=4] {
+  [stream_order=8] {
     line-width: 5.0 * @zoomBase;
   }
-  [stream_order=3] {
+  [stream_order=7] {
+    line-width: 4.0 * @zoomBase;
+  }
+  [stream_order=6] {
     line-width: 3.0 * @zoomBase;
   }
-}
-
-#tdxstreams[zoom>=11][zoom<=12] {
-  [stream_order>=9] {
-    line-width: 18.0 * @zoomBase;
+  [stream_order=5] {
+    line-width: 2.0 * @zoomBase;
   }
-  [stream_order<=8][stream_order>=6] {
-    line-width: 12.0 * @zoomBase;
-  }
-  [stream_order<=5][stream_order>=4] {
-    line-width:  9.0 * @zoomBase;
+  [stream_order=4] {
+    line-width: 1.0 * @zoomBase;
   }
   [stream_order=3] {
-    line-width:  6.0 * @zoomBase;
-  }
-  [stream_order=2] {
-    line-width:  5.0 * @zoomBase;
-  }
-  [stream_order<=1][stream_order>=0] {
-    line-width:  4.0 * @zoomBase;
+    line-width: 0.5 * @zoomBase;
   }
 }
 
-#tdxstreams[zoom>=13] {
-  [stream_order>=9] {
-    line-width: 18.0 * @zoomBase;
+#tdxstreams[zoom>10][zoom<=11] {
+  [stream_order=8] {
+    line-width: 6.0 * @zoomBase;
   }
-  [stream_order<=8][stream_order>=6] {
-    line-width: 14.0 * @zoomBase;
+  [stream_order=7] {
+    line-width: 5.0 * @zoomBase;
   }
-  [stream_order<=5][stream_order>=3] {
-    line-width:  10.0 * @zoomBase;
+  [stream_order=6] {
+    line-width: 4.0 * @zoomBase;
+  }
+  [stream_order=5] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=4] {
+    line-width: 2.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-width: 1.0 * @zoomBase;
   }
   [stream_order=2] {
-    line-width:  8.0 * @zoomBase;
+    line-width: 0.5 * @zoomBase;
   }
-  [stream_order<=1][stream_order>=0] {
-    line-width:  5.0 * @zoomBase;
+}
+
+#tdxstreams[zoom>=12] {
+  [stream_order=8] {
+    line-width: 7.0 * @zoomBase;
+  }
+  [stream_order=7] {
+    line-width: 6.0 * @zoomBase;
+  }
+  [stream_order=6] {
+    line-width: 5.0 * @zoomBase;
+  }
+  [stream_order=5] {
+    line-width: 4.0 * @zoomBase;
+  }
+  [stream_order=4] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-width: 2.0 * @zoomBase;
+  }
+  [stream_order=2] {
+    line-width: 1.0 * @zoomBase;
+  }
+  [stream_order=1] {
+    line-width: 0.5 * @zoomBase;
   }
 }
