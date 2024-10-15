@@ -241,7 +241,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     lazy: true,
                 },
                 {
-                    name: "streams_tdxhydro",
+                    name: "streams_tdxstreams",
                     displayName: "Global Medium Resolution Streams",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,

@@ -664,7 +664,7 @@ LAYER_GROUPS = {
         {
             'code': 'tdxhydro_streams_v1',
             'display': ('TDX Hydro'),
-            'table_name': 'tdxhydro',
+            'table_name': 'tdxstreams',
             'minZoom': 5,
         },
     ],
@@ -676,7 +676,7 @@ STREAM_TABLES = {
     'nhd': 'nhdflowline',
     'nhdhr': 'nhdflowlinehr',
     'drb': 'drb_streams_50',
-    'tdxhydro': 'tdxhydro',
+    'tdxstreams': 'tdxstreams',
 }
 
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
