@@ -28,6 +28,8 @@ envdir_config:
   MMW_CLIENT_APP_USER_PASSWORD: "{{ client_app_user_password }}"
   MMW_STACK_COLOR: "{{ stack_color }}"
   MMW_TILECACHE_BUCKET: "{{ tilecache_bucket_name }}"
+  MMW_TITILER_HOST: "{{ titiler_host }}"
+  MMW_TITILER_LAYER_MAP: "{{ titiler_layer_map }}"
   MMW_STACK_TYPE: "{{ stack_type }}"
   MMW_ENABLED_FEATURES: "{{ enabled_features }}"
 

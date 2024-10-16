@@ -10,6 +10,7 @@ but default to 'geom' if not.
 For basemaps, maxZoom must be defined.
 """
 
+from os import environ
 from os.path import join, dirname, abspath
 from collections import OrderedDict
 
@@ -17,6 +18,10 @@ import json
 
 from django.contrib.gis.geos import GEOSGeometry
 from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS, IO_LULC
+
+# TILER CONFIGURATION
+TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
+# END TILER CONFIGURATION
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -58,6 +63,25 @@ drwi_simple_perimeter_path = join(dirname(abspath(__file__)),
 with open(drwi_simple_perimeter_path) as drwi_simple_perimeter_file:
     DRWI_SIMPLE_PERIMETER_JSON = json.load(drwi_simple_perimeter_file)
 
+# helper function to compose the config dicts for the IO LULC layers
+def _make_lulc_config(year):
+    return {
+        'display': f'IO Global LULC {year}',
+        'code': f'io-lulc-{year}',
+        'css_class_prefix': f'io-lulc-{year} io-lulc',
+        'short_display': f'IO LULC {year}',
+        'helptext': 'Global land use/land cover dataset produced by '
+                    'Impact Observatory, Microsoft, and Esri, derived from '
+                    'ESA Sentinel-2 imagery at 10 meter resolution.',
+        'url': f'https://{TILER_HOST}/titiler/io-lulc/{year}' + '/{z}/{x}/{y}.png',
+        'maxNativeZoom': 18,
+        'maxZoom': 18,
+        'opacity': 0.618,
+        'has_opacity_slider': True,
+        'legend_mapping': { key: names[1] for key, names in IO_LULC.items() },
+        'big_cz': True,
+    }
+
 LAYER_GROUPS = {
     'basemap': [
         {
@@ -95,22 +119,8 @@ LAYER_GROUPS = {
         },
     ],
     'coverage': [
-        {
-            'display': 'IO Global LULC 2023',
-            'code': 'io-lulc-2023',
-            'css_class_prefix': 'io-lulc-2023 io-lulc',
-            'short_display': 'IO LULC 2023',
-            'helptext': 'Global land use/land cover dataset produced by '
-                        'Impact Observatory, Microsoft, and Esri, derived from '
-                        'ESA Sentinel-2 imagery at 10 meter resolution.',
-            'url': 'https://{s}.tiles.azavea.com/io-lulc-2023-10m/{z}/{x}/{y}/0695d32d7723e4c3b53f1ec897e108282dd8ae2c919250f333f4600fe78ebbed.png',
-            'maxNativeZoom': 8,
-            'maxZoom': 18,
-            'opacity': 0.618,
-            'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in IO_LULC.items() },
-            'big_cz': True,
-        },
+        # IO LULC layers for 2023-2017, using a helper function to avoid lots of repetition
+        *[_make_lulc_config(yr) for yr in range(2023, 2016, -1)],
         {
             'display': 'Land Use/Cover 2019 (NLCD19)',
             'code': 'nlcd-2019_2019',

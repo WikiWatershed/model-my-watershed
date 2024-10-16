@@ -26,4 +26,8 @@ docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"
 
 aws_profile: "mmw-stg"
 
+titiler_host: "tiler.staging.modelmywatershed.org"
+
+titiler_layer_map: "io-lulc__2017__6900be40-a0d8-407f-a5d5-cc431310686c,io-lulc__2018__4a0dc777-6fcf-4a46-8e2e-fd0b97d712d8,io-lulc__2019__570f1af6-049d-45bb-a31e-0b1a88524283,io-lulc__2020__47e3dc4d-1849-4830-a1c2-3c9a3186644d,io-lulc__2021__8f8316e7-6100-4c8b-bd4d-91dcd104ff09,io-lulc__2022__d36543c2-6b4f-47a8-9b13-0341ce222a31,io-lulc__2023__fec54b55-5e75-4c6d-ac47-41579d722dab"
+
 stack_type: "Development"
