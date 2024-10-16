@@ -219,7 +219,7 @@ var AnalyzeTaskGroupCollection = Backbone.Collection.extend({
     model: AnalyzeTaskGroupModel
 });
 
-function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
+function createAnalyzeTaskGroupCollection(aoi, wkaoi, drainageArea) {
     var taskGroups = [
         {
             name: "streams",
@@ -400,6 +400,21 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             ]
         },
     ];
+
+    if (drainageArea) {
+        taskGroups.push({
+            name: "drainage_area",
+            displayName: "Drainage Area",
+            tasks: [
+                {
+                    name: "drainage_area",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drainage-area"
+                }
+            ]
+        });
+    }
 
     if (settings.get('data_catalog_enabled')) {
         taskGroups = _(taskGroups)
