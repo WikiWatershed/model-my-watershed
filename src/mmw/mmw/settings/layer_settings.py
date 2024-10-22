@@ -712,7 +712,7 @@ LAYER_GROUPS = {
             'code': 'tdxhydro_streams_v1',
             'display': ('TDX Hydro'),
             'table_name': 'tdxstreams',
-            'minZoom': 5,
+            'minZoom': 0,
         },
     ],
 }
