@@ -107,16 +107,19 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
                     contentType: 'application/json',
                     postData: isWkaoi ? 
                         JSON.stringify({ wkaoi : wkaoi }) : 
-                        JSON.stringify({ area_of_interest : aoi })
+                        JSON.stringify({ area_of_interest : aoi }),
+                    pollFailure: function(err) {
+                        self.set('error', err);
+                    },
+                    startFailure: function(err) {
+                        self.set('error', err);
+                    },
                 },
                 promises = self.start(taskHelper);
 
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
             self.fetchAnalysisPromise
-                .fail(function(err) {
-                    self.set('error', err);
-                })
                 .always(function() {
                     delete self.fetchAnalysisPromise;
                 });

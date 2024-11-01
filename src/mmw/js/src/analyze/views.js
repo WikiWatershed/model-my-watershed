@@ -403,7 +403,7 @@ var TabContentView = Marionette.LayoutView.extend({
             showTaskOutput = _.bind(this.showTaskOutput, this);
 
         model.get('tasks').forEach(function(task) {
-            listenTo(task, 'change:status', function(taskModel) {
+            listenTo(task, 'change:status change:error', function(taskModel) {
                 if (taskModel.get('name') === model.getActiveTask().get('name')) {
                     showTaskOutput();
                 }
@@ -438,6 +438,12 @@ var TabContentView = Marionette.LayoutView.extend({
 
         if (err && err.timeout) {
             tmvModel.setTimeoutError();
+        } else if (err && err.responseJSON) {
+            if (err.responseJSON.length === 1) {
+                tmvModel.setError('Error: ' + err.responseJSON[0]);
+            } else if (err.reponseJSON.length > 1) {
+                tmvModel.setError('Errors: ' + err.responseJSON.join(', '));
+            }
         } else {
             tmvModel.setError('Error');
         }
@@ -472,7 +478,7 @@ var TabContentView = Marionette.LayoutView.extend({
                 this.showAnalyzingMessage();
             } else if (status === 'complete') {
                 this.showResults();
-            } else if (status === 'failed') {
+            } else if (!!error) {
                 this.showErrorMessage(error);
             }
         }
