@@ -73,7 +73,7 @@ def _make_lulc_config(year):
         'helptext': 'Global land use/land cover dataset produced by '
                     'Impact Observatory, Microsoft, and Esri, derived from '
                     'ESA Sentinel-2 imagery at 10 meter resolution.',
-        'url': f'https://{TILER_HOST}/titiler/io-lulc/{year}' + '/{z}/{x}/{y}.png',
+        'url': f'//{TILER_HOST}/titiler/io-lulc/{year}' + '/{z}/{x}/{y}.png',
         'maxNativeZoom': 18,
         'maxZoom': 18,
         'opacity': 0.618,
