@@ -890,7 +890,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             agPercent = data.first().ag_stream_pct,
             lengthInAg = totalLength * agPercent,
             lengthInNonAg = totalLength - lengthInAg,
-            isGlobal = this.options.isGlobal;
+            conusOnly = this.options.conusOnly;
 
         return {
             lengthUnit: lengthUnit,
@@ -898,7 +898,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,
             lengthInNonAg: lengthInNonAg,
-            isGlobal: isGlobal,
+            conusOnly: conusOnly,
         };
     },
 });
@@ -1394,7 +1394,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
             units: units,
             collection: census,
             modelName: this.model.get('name'),
-            isGlobal: activeTask && activeTask.get('isGlobal'),
+            conusOnly: activeTask && activeTask.get('conusOnly'),
         }));
 
         if (AnalyzeChartView) {

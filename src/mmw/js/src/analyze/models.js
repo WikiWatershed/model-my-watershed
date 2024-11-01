@@ -77,7 +77,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             // Include this task in Catalog Search results (ie, BigCZ)
             enabledForCatalogMode: false,
             lazy: false, // Will not execute immediately if lazy is true
-            isGlobal: false, // false for CONUS analyses, true for Global ones
+            conusOnly: true, // true for CONUS analyses, true for Global ones
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -247,7 +247,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     wkaoi: wkaoi,
                     taskName: "analyze/global-streams",
                     lazy: true,
-                    isGlobal: true,
+                    conusOnly: false,
                 },
             ]
         },
@@ -310,7 +310,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     wkaoi: wkaoi,
                     taskName: "analyze/global-land/2023",
                     lazy: true,
-                    isGlobal: true,
+                    conusOnly: false,
                 },
                 {
                     name: "protected_lands",
