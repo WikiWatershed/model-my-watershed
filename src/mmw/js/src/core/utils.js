@@ -599,6 +599,12 @@ var utils = {
         return this._containedIn(DRWI_SIMPLE_PERIMETER, geom);
     }),
 
+    isInConus: _.memoize(function(geom) {
+        var CONUS = settings.get('conus_perimeter');
+
+        return this._containedIn(CONUS, geom);
+    }),
+
     // Calculates a range from 0 to the upper bound
     // of the order of magnitde of the value. Returns
     // an object containing min and max.

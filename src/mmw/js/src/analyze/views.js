@@ -81,15 +81,25 @@ var ResultsView = Marionette.LayoutView.extend({
         worksheetRegion: '#worksheet-export-region',
     },
 
-    templateHelpers: {
-        'data_catalog_enabled': settings.get('data_catalog_enabled'),
-        'model_packages': settings.get('model_packages'),
+    templateHelpers: function() {
+        return {
+            'data_catalog_enabled': settings.get('data_catalog_enabled'),
+            'model_packages': settings.get('model_packages'),
+            'isInConus': this.isInConus,
+        };
+    },
+
+    initialize: function() {
+        this.isInConus = utils.isInConus(App.map.get('areaOfInterest'));
     },
 
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
-        this.showWorksheetExportRegion();
+
+        if (this.isInConus) {
+            this.showWorksheetExportRegion();
+        }
     },
 
     onRender: function() {
@@ -110,9 +120,11 @@ var ResultsView = Marionette.LayoutView.extend({
             collection: this.collection
         }));
 
-        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
-            App.getDataCatalog()
-        ));
+        if (this.isInConus) {
+            this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+                App.getDataCatalog()
+            ));
+        }
     },
 
     showWorksheetExportRegion: function() {
