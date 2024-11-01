@@ -1017,8 +1017,13 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             contentType: 'application/json'
         };
 
-        if (!utils.withinConus(point)) {
-            deferred.reject('The area of interest must be within the Continental US.');
+        if (_.includes(['drb', 'nhd'], dataSource)
+            && !coreUtils.isInConus(point)) {
+
+            deferred.reject(
+                'The Area of Interest must be within ' +
+                'the Continental United States.'
+            );
         } else {
             this.rwdTaskModel.start(taskHelper);
         }

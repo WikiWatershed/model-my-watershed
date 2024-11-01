@@ -2304,14 +2304,7 @@ def _parse_modeling_input(request, perimeter=None):
 
 def _parse_aoi(data, perimeter=None):
     if perimeter:
-        # If perimeter is specified, pass it to the serializer so it can
-        # validate against it. The serializer expects all input within
-        # data, so we make the incoming request's QueryDict mutable to
-        # add the perimeter, then set it back to immutable. This avoids
-        # having to make a deepcopy of the request with its large AoI json.
-        data._mutable = True
         data['perimeter'] = perimeter
-        data._mutable = False
 
     serializer = AoiSerializer(data=data)
     serializer.is_valid(raise_exception=True)

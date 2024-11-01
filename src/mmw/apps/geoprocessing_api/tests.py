@@ -1412,7 +1412,9 @@ class ExerciseModeling(TestCase):
     def send_request(self, url, data):
         client = Client()
 
-        return client.post(url, data, HTTP_AUTHORIZATION=f'Token {self.token}')
+        return client.post(url, data=json.dumps(data),
+                           content_type='application/json',
+                           HTTP_AUTHORIZATION=f'Token {self.token}')
 
     def send_gwlfe_prepare(self, data):
         return self.send_request(
@@ -1653,3 +1655,33 @@ class ExerciseModelingModifications(TestCase):
 
         # Changed indirectly
         self.assertEqual(modded_input['n24b'], 2639.642634937583)
+
+
+class ExerciseRWD(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='user',
+                                             email='user@element84.com')
+
+        self.token = Token.objects.get(user=self.user)
+
+    def send_request(self, data):
+        client = Client()
+        url = reverse('geoprocessing_api:start_rwd')
+
+        return client.post(url, data=json.dumps(data),
+                           content_type='application/json',
+                           HTTP_AUTHORIZATION=f'Token {self.token}')
+
+    def test_outside_conus_denied(self):
+        data = {
+            "location": [  # Indore, MP, India
+                75.857727,
+                22.7196
+            ],
+            "snappingOn": True,
+            "simplify": 0.0001,
+            "dataSource": "drb"
+        }
+
+        response = self.send_request(data)
+        self.assertEqual(response.status_code, 400)
