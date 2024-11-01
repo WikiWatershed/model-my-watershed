@@ -42,15 +42,15 @@ def get_albers_crs_for_aoi(aoi):
     elif aoi.within(box(-10, 34, 40, 72)):  # Europe
         return 'EPSG:3035'
     elif aoi.within(box(25, -10, 180, 60)):  # Asia
-        return 'EPSG:102025'
+        return 'ESRI:102025'
     elif aoi.within(box(-20, -35, 55, 38)):  # Africa
-        return 'EPSG:102022'
+        return 'ESRI:102022'
     elif aoi.within(box(-90, -60, -30, 15)):  # South America
-        return 'EPSG:102033'
+        return 'ESRI:102033'
     elif aoi.within(box(112, -45, 155, -10)):  # Australia
-        return 'EPSG:102034'
+        return 'ESRI:102034'
     else:  # Global
-        return 'EPSG:54017'  # Behrmann Equal Area Cylindrical
+        return 'ESRI:54017'  # Behrmann Equal Area Cylindrical
 
 
 def animal_population(geojson):
