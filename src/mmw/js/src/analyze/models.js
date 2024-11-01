@@ -99,7 +99,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             var gaEvent = self.get('name') + '-analyze',
                 gaLabel = utils.isInDrb(aoi) ? 'drb-aoi' : 'national-aoi',
                 gaAoiSize = turfArea(aoi) / 1000000;
-            
+
             utils.gtm('Analyze', gaEvent, gaLabel, parseInt(gaAoiSize));
 
             var isWkaoi = utils.isWKAoIValid(wkaoi),

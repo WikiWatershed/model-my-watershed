@@ -458,7 +458,7 @@ def start_analyze_global_land(request, year, format=None):
 
     This endpoint supports year values of 2017, 2018, 2019, 2020, 2021, 2022,
     and 2023.
-    
+
     This endpoint supports global data, as opposed to analyze_land which only
     works with the Continental United States (CONUS). The underlying datasource
     is Impact Observatory's Global Annual LULC layer hosted on AWS Open Registry.  # NOQA
@@ -1647,7 +1647,7 @@ def start_analyze_drainage_area(request, format=None):
     Runs GWLF-E on the HUC-12 that contains this drainage area, calculated
     via its centroid, and then scales the results to the land use of the
     drainage area.
-    
+
     For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/).  # NOQA
 
     ## Response

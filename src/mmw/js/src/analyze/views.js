@@ -1308,7 +1308,7 @@ var ChartView = Marionette.ItemView.extend({
                isPercentage: true,
                barClasses: _.map(data, 'class')
            };
-        
+
         // Custom margins as needed
         if (name.startsWith('global_land_io_')) {
             chartOptions.margin = { left: 160 };
