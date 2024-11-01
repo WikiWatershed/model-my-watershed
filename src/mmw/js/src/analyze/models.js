@@ -105,8 +105,8 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             var isWkaoi = utils.isWKAoIValid(wkaoi),
                 taskHelper = {
                     contentType: 'application/json',
-                    postData: isWkaoi ? 
-                        JSON.stringify({ wkaoi : wkaoi }) : 
+                    postData: isWkaoi ?
+                        JSON.stringify({ wkaoi : wkaoi }) :
                         JSON.stringify({ area_of_interest : aoi }),
                     pollFailure: function(err) {
                         self.set('error', err);
@@ -312,6 +312,60 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
                     taskName: "analyze/global-land/2023",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2022",
+                    displayName: "Global Annual LULC 2022",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2022",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2021",
+                    displayName: "Global Annual LULC 2021",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2021",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2020",
+                    displayName: "Global Annual LULC 2020",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2020",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2019",
+                    displayName: "Global Annual LULC 2019",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2019",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2018",
+                    displayName: "Global Annual LULC 2018",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2018",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2017",
+                    displayName: "Global Annual LULC 2017",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2017",
                     lazy: true,
                     conusOnly: false,
                 },
