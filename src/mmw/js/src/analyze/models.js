@@ -436,6 +436,31 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             .value();
     }
 
+    if (!utils.isInConus(aoi)) {
+        var isConusTask = function(task) {
+            return task.conusOnly !== false;
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are CONUS only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isConusTask);
+
+                // Mark the first task in each task group as not lazy,
+                // so the UI has something to show
+                if (tg.tasks.length > 0) {
+                  tg.tasks[0].lazy = false;
+                }
+
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
     return new AnalyzeTaskGroupCollection(taskGroups);
 }
 
