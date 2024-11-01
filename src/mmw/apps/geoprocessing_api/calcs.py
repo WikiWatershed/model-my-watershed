@@ -13,7 +13,7 @@ from shapely.geometry import box, shape
 from apps.modeling.mapshed.calcs import (animal_energy_units,
                                          get_point_source_table)
 
-DRB = settings.DRB_SIMPLE_PERIMETER
+DRB = settings.PERIMETERS['DRB_SIMPLE']['geom']
 
 ANIMAL_DISPLAY_NAMES = {
     'sheep': 'Sheep',

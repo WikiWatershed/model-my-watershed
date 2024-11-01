@@ -26,42 +26,62 @@ TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
-# Full perimeter of the Delaware River Basin (DRB).
-drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
-with open(drb_perimeter_path) as drb_perimeter_file:
-    drb_perimeter = json.load(drb_perimeter_file)
+PERIMETERS = {
+    # Full perimeter of the Delaware River Basin (DRB).
+    'DRB': {
+        'label': 'Delaware River Basin',
+        'file': 'data/drb_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered (3 mi) and simplified perimeter of the DRB.
+    'DRB_SIMPLE': {
+        'label': 'Delaware River Basin',
+        'file': 'data/drb_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Simplified perimeter of PA, used for DEP specific layers
+    'PA': {
+        'label': 'Pennsylvania',
+        'file': 'data/pa_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
+    # perimeter of the NHD Mid Atlantic Region (02)
+    # Not a visible layer, but used for to detect if a point will work for RWD.
+    'NHD': {
+        'label': 'NHD Mid Atlantic Region (02)',
+        'file': 'data/nhd_region2_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered (3 mi) and simplified perimeter of the
+    # Delaware River Watershed Initiative (DRWI)
+    'DRWI': {
+        'label': 'Delaware River Watershed Initiative',
+        'file': 'data/drwi_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Simplified perimeter of the continental US, used to prevent non-CONUS
+    # AoIs from being sent to the API
+    'CONUS': {
+        'label': 'Continental United States',
+        'file': 'data/conus_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+}
 
-# Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
-drb_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                 'data/drb_simple_perimeter.json')
-with open(drb_simple_perimeter_path) as drb_simple_perimeter_file:
-    drb_simple_perimeter = json.load(drb_simple_perimeter_file)
-
-# Simplified perimeter of PA, used for DEP specific layers
-pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
-with open(pa_perimeter_path) as pa_perimeter_file:
-    pa_perimeter = json.load(pa_perimeter_file)
-
-# Simplified perimeter of the continental US, used to prevent non-CONUS
-# AoIs from being sent to the API
-conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
-with open(conus_perimeter_path) as conus_perimeter_file:
-    CONUS_PERIMETER = json.load(conus_perimeter_file)
-
-# Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
-# perimeter of the NHD Mid Atlantic Region (02)
-# Not a visible layer, but used for to detect if a point will work for RWD.
-nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                         'data/nhd_region2_simple_perimeter.json')
-with open(nhd_region2_simple_perimeter_path) as nhd_region2_simple_perimeter_file:
-    NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
-
-# Buffered (3 mi) and simplified perimeter of the
-# Delaware River Watershed Initiative (DRWI)
-drwi_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                  'data/drwi_simple_perimeter.json')
-with open(drwi_simple_perimeter_path) as drwi_simple_perimeter_file:
-    DRWI_SIMPLE_PERIMETER_JSON = json.load(drwi_simple_perimeter_file)
+# Populate perimeters
+for key, data in PERIMETERS.items():
+    perimeter_path = join(dirname(abspath(__file__)), data['file'])
+    with open(perimeter_path) as perimeter_file:
+        data['json'] = json.load(perimeter_file)
+        data['geom'] = GEOSGeometry(json.dumps(data['json']['geometry']),
+                                    srid=4326)
 
 # helper function to compose the config dicts for the IO LULC layers
 def _make_lulc_config(year):
@@ -390,7 +410,7 @@ LAYER_GROUPS = {
             'minZoom': 7,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'perimeter': pa_perimeter,
+            'perimeter': PERIMETERS['PA']['json'],
             'big_cz': False,
             'overlay_codes': ['municipalities'],
             'legend_mapping': {
@@ -404,7 +424,7 @@ LAYER_GROUPS = {
             'short_display': 'TN Loading Rates',
             'table_name': 'drb_catchment_water_quality_tn',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -424,7 +444,7 @@ LAYER_GROUPS = {
             'short_display': 'TP Loading Rates',
             'table_name': 'drb_catchment_water_quality_tp',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -444,7 +464,7 @@ LAYER_GROUPS = {
             'short_display': 'TSS Loading Rates',
             'table_name': 'drb_catchment_water_quality_tss',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -592,7 +612,7 @@ LAYER_GROUPS = {
             'table_name': 'drb_streams_50',
             'minZoom': 5,
             # Layer selectable only when viewport overlaps perimeter polygon
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -678,12 +698,6 @@ STREAM_TABLES = {
     'drb': 'drb_streams_50',
     'tdxstreams': 'tdxstreams',
 }
-
-DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
-DRB_SIMPLE_PERIMETER = \
-    GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
-DRWI_SIMPLE_PERIMETER = \
-    GEOSGeometry(json.dumps(DRWI_SIMPLE_PERIMETER_JSON['geometry']), srid=4326)
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
