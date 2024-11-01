@@ -94,13 +94,11 @@ function validateRwdShape(result) {
 function validateShape(polygon) {
     var d = new $.Deferred(),
         selfIntersectingShape = false,
-        invalidForAnalysis = false,
-        outsideConus = false;
+        invalidForAnalysis = false;
 
     try {
         selfIntersectingShape = utils.isSelfIntersecting(polygon);
         invalidForAnalysis = !utils.isValidForAnalysis(polygon);
-        outsideConus = !utils.withinConus(polygon);
     } catch (exc) {
         d.reject('Error during geometry validation.');
         console.error(exc);
@@ -124,9 +122,6 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxAreaString + '.';
         d.reject(message);
-    } else if (outsideConus) {
-        var conusMessage = 'The area of interest must be within the Continental US.';
-        d.reject(conusMessage);
     } else {
         d.resolve(polygon);
     }

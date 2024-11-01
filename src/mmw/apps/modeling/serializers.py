@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import rollbar
+from django.conf import settings
 from django.contrib.gis.geos import (GEOSGeometry,
                                      MultiPolygon)
 
@@ -26,7 +27,7 @@ class JsonField(serializers.BaseSerializer):
 
 
 class MultiPolygonGeoJsonField(JsonField):
-    def to_internal_value(self, data):
+    def to_internal_value(self, data, perimeter=None):
         """
         Accepts string or dict representation
         of a geojson polygon or multipolygon,
@@ -64,6 +65,16 @@ class MultiPolygonGeoJsonField(JsonField):
             geometry = MultiPolygon(geometry, srid=4326)
 
         validate_aoi(geometry)
+
+        if perimeter:
+            if perimeter not in settings.PERIMETERS:
+                raise ValidationError('Invalid perimeter specified: '
+                                      f'{perimeter}')
+
+            if not settings.PERIMETERS[perimeter]['geom'].contains(geometry):
+                raise ValidationError(
+                    'Area of interest must be within '
+                    f"{settings.PERIMETERS[perimeter]['label']}")
 
         return geometry.geojson
 
@@ -215,16 +226,22 @@ class AoiSerializer(serializers.BaseSerializer):
         we use it to look up the 'wkaoi'.
 
         Args:
-        data: Only one of the keys is necessary
+        data: Only one of area_of_interest, wkaoi, or huc is necessary
             {
                 'area_of_interest': { <geojson dict or string> }
                 'wkaoi': '{table}__{id}',
                 'huc': '<huc8, huc10, or huc12 id>',
+                'perimeter': '<PERIMETERS key>',
             }
+
+        perimeter is optional. If specified, any incoming aoi will be checked
+        to see if it is contained within the perimeter. If not, a validation
+        error is raised.
         """
         wkaoi = data.get('wkaoi', None)
         huc = data.get('huc', None)
         aoi = data.get('area_of_interest', None)
+        perimeter = data.get('perimeter', None)
 
         if (not aoi and not wkaoi and not huc):
             raise ValidationError(detail='Must supply exactly one of: ' +
@@ -250,7 +267,8 @@ class AoiSerializer(serializers.BaseSerializer):
 
             huc = aoi['properties'].get('huc')
 
-        aoi_field = MultiPolygonGeoJsonField().to_internal_value(aoi)
+        aoi_field = MultiPolygonGeoJsonField().to_internal_value(
+            aoi, perimeter=perimeter)
 
         return {
             'area_of_interest': aoi_field,

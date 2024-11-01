@@ -2248,7 +2248,7 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
     )
 
 
-def _parse_analyze_input(request):
+def _parse_analyze_input(request, perimeter=None):
     """
     Parses analyze requests and returns area_of_interest, wkaoi, and msg.
 
@@ -2264,13 +2264,16 @@ def _parse_analyze_input(request):
 
     If the request is in the old style, returns a msg list which includes a
     message for users warning about upcoming deprecation.
+
+    If a valid perimeter is specified, then a validation error is raised if
+    the area of interest is not contained within it.
     """
     msg = []
 
     if ('area_of_interest' in request.data or
             'wkaoi' in request.data or
             'huc' in request.data):
-        area_of_interest, wkaoi = _parse_aoi(request.data)
+        area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
         return area_of_interest, wkaoi, msg
 
     # TODO Remove this message when old style /analyze/ input is deprecated
@@ -2290,15 +2293,25 @@ def _parse_analyze_input(request):
     return area_of_interest, wkaoi, msg
 
 
-def _parse_modeling_input(request):
+def _parse_modeling_input(request, perimeter=None):
     validate_gwlfe_prepare(request.data)
     layer_overrides = request.data.get('layer_overrides', {})
-    area_of_interest, wkaoi = _parse_aoi(request.data)
+    area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
 
     return area_of_interest, wkaoi, layer_overrides
 
 
-def _parse_aoi(data):
+def _parse_aoi(data, perimeter=None):
+    if perimeter:
+        # If perimeter is specified, pass it to the serializer so it can
+        # validate against it. The serializer expects all input within
+        # data, so we make the incoming request's QueryDict mutable to
+        # add the perimeter, then set it back to immutable. This avoids
+        # having to make a deepcopy of the request with its large AoI json.
+        data._mutable = True
+        data['perimeter'] = perimeter
+        data._mutable = False
+
     serializer = AoiSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     area_of_interest = serializer.validated_data.get('area_of_interest')
