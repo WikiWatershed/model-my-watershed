@@ -15,7 +15,8 @@ var ToolbarModel = Backbone.Model.extend({
         pollError: false,
         activeDrawTool: null,
         activeDrawToolItem: null,
-        openDrawTool: null
+        openDrawTool: null,
+        isInConus: true,
     },
 
     reset: function() {
