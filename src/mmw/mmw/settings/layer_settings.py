@@ -154,6 +154,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -169,6 +170,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -184,6 +186,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -199,6 +202,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -214,6 +218,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -229,6 +234,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -255,6 +261,7 @@ LAYER_GROUPS = {
                 SOIL[7],
                 SOIL[4],
             ]),
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -272,6 +279,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'elevation-legend',
             'legend_units_label': 'Elevation (m)',
             'legend_unit_breaks': [-86, 0, 20, 100, 250, 750, 2000, 4413],
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'display': 'Slope (Percent)',
@@ -288,6 +296,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'percent-slope-legend',
             'legend_units_label': 'Slope (%)',
             'legend_unit_breaks': [0, 1, 2, 4, 6, 10, 15, 20, 30, 50, 951],
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'code': 'mean_ppt',
@@ -304,6 +313,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'precipitation-legend',
             'legend_units_label': 'Precipitation (mm/month)',
             'legend_unit_breaks': [0, '', 100, '', 200, '', 300, '', 400, '', 500],
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -321,6 +331,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'temperature-legend',
             'legend_units_label': 'Air Temperature (\xb0C)',
             'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -340,6 +351,7 @@ LAYER_GROUPS = {
                         PROTECTED_LANDS.items(), key=lambda x: x[0]
                 )
             ]),
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'display': 'Active River Area - NE & Mid-Atlantic',
@@ -352,6 +364,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'perimeter': PERIMETERS['NHD']['json'],
             'big_cz': False,
         },
         {
@@ -368,6 +381,7 @@ LAYER_GROUPS = {
                 'nonurban': 'Non-urban area',
                 'urban': 'Urban area',
             },
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -384,6 +398,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'shippensburg-legend',
             'legend_units_label': 'Projected Urbanization (%)',
             'legend_unit_breaks': [0, '', 20, '', 40, '', 60, '', 80, '', 100],
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -400,6 +415,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'shippensburg-legend',
             'legend_units_label': 'Projected Urbanization (%)',
             'legend_unit_breaks': [0, '', 20, '', 40, '', 60, '', 80, '', 100],
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -497,6 +513,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 30,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -516,6 +533,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 20,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -536,6 +554,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 10,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -552,6 +571,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 6,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -569,6 +589,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 5,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -585,6 +606,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 8,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
     ],
@@ -595,6 +617,7 @@ LAYER_GROUPS = {
                         ' Stream Network'),
             'table_name': 'nhdflowline',
             'minZoom': 3,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -603,6 +626,7 @@ LAYER_GROUPS = {
                         ' Stream Network'),
             'table_name': 'nhdflowlinehr',
             'minZoom': 8,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -629,6 +653,7 @@ LAYER_GROUPS = {
                 4: 'Less than 4 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -645,6 +670,7 @@ LAYER_GROUPS = {
                 4: 'Less than 0.12 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -661,6 +687,7 @@ LAYER_GROUPS = {
                 4: 'Less than 200 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
