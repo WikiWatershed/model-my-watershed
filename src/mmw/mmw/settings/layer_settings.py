@@ -139,8 +139,6 @@ LAYER_GROUPS = {
         },
     ],
     'coverage': [
-        # IO LULC layers for 2023-2017, using a helper function to avoid lots of repetition
-        *[_make_lulc_config(yr) for yr in range(2023, 2016, -1)],
         {
             'display': 'Land Use/Cover 2019 (NLCD19)',
             'code': 'nlcd-2019_2019',
@@ -237,6 +235,8 @@ LAYER_GROUPS = {
             'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
+        # IO LULC layers for 2023-2017, using a helper function to avoid lots of repetition
+        *[_make_lulc_config(yr) for yr in range(2023, 2016, -1)],
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
             'code': 'soil',
