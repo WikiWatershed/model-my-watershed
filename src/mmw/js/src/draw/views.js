@@ -94,13 +94,11 @@ function validateRwdShape(result) {
 function validateShape(polygon) {
     var d = new $.Deferred(),
         selfIntersectingShape = false,
-        invalidForAnalysis = false,
-        outsideConus = false;
+        invalidForAnalysis = false;
 
     try {
         selfIntersectingShape = utils.isSelfIntersecting(polygon);
         invalidForAnalysis = !utils.isValidForAnalysis(polygon);
-        outsideConus = !utils.withinConus(polygon);
     } catch (exc) {
         d.reject('Error during geometry validation.');
         console.error(exc);
@@ -124,9 +122,6 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxAreaString + '.';
         d.reject(message);
-    } else if (outsideConus) {
-        var conusMessage = 'The area of interest must be within the Continental US.';
-        d.reject(conusMessage);
     } else {
         d.resolve(polygon);
     }
@@ -568,6 +563,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
     initialize: function(options) {
         this.resetDrawingState = options.resetDrawingState;
         this.onMapZoom = _.bind(this.onMapZoom, this);
+        this.onMapMove = _.bind(this.onMapMove, this);
 
         var self = this,
             map = App.getLeafletMap();
@@ -580,6 +576,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         });
 
         map.on('zoomend', this.onMapZoom);
+        map.on('moveend', this.onMapMove);
     },
 
     templateHelpers: function() {
@@ -607,6 +604,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     onShow: function() {
         this.activatePopovers();
+        this.onMapMove();
     },
 
     onRender: function() {
@@ -619,6 +617,14 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             this.resetDrawingState();
         }
         this.render();
+    },
+
+    onMapMove: function() {
+        var map = App.getLeafletMap(),
+            viewportPolygon = coreUtils.viewportPolygon(map),
+            conus = settings.get('conus_perimeter');
+
+        this.model.set('isInConus', turfIntersect(conus, viewportPolygon));
     },
 
     getActiveToolDataItem: function() {
@@ -643,6 +649,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         var map = App.getLeafletMap();
 
         map.off('zoomend', this.onMapZoom);
+        map.off('moveend', this.onMapMove);
     }
 });
 
@@ -675,7 +682,8 @@ var SelectBoundaryView = DrawToolBaseView.extend({
                     title: shapeType.display,
                     info: shapeType.helptext,
                     minZoom: shapeType.minZoom,
-                    directions: directions
+                    directions: directions,
+                    conusOnly: true,
                 };
             });
 
@@ -788,7 +796,8 @@ var DrawAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Draw Area.</a>',
                     minZoom: 0,
-                    directions: 'Draw a boundary.'
+                    directions: 'Draw a boundary.',
+                    conusOnly: false,
                 },
                 {
                     id: squareKm,
@@ -799,7 +808,8 @@ var DrawAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Draw Area.</a>',
                     minZoom: 0,
-                    directions: 'Click a point.'
+                    directions: 'Click a point.',
+                    conusOnly: false,
                 }
             ]
         };
@@ -884,7 +894,8 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
-                directions: 'Click a point to delineate a watershed.'
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: true,
             },
             {
                 id: utils.DRB,
@@ -901,7 +912,8 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
-                directions: 'Click a point to delineate a watershed.'
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: true,
             }
         ];
     },
@@ -1022,8 +1034,13 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             contentType: 'application/json'
         };
 
-        if (!utils.withinConus(point)) {
-            deferred.reject('The area of interest must be within the Continental US.');
+        if (_.includes(['drb', 'nhd'], dataSource)
+            && !coreUtils.isInConus(point)) {
+
+            deferred.reject(
+                'The Area of Interest must be within ' +
+                'the Continental United States.'
+            );
         } else {
             this.rwdTaskModel.start(taskHelper);
         }
@@ -1087,7 +1104,8 @@ var DrainageAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Drainage Area.</a>',
                     minZoom: 0,
-                    directions: 'Click a point.'
+                    directions: 'Click a point.',
+                    conusOnly: true,
                 },
                 {
                     id: drainageStream,
@@ -1099,7 +1117,8 @@ var DrainageAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Drainage Area.</a>',
                     minZoom: 0,
-                    directions: 'Draw a boundary around a stream.'
+                    directions: 'Draw a boundary around a stream.',
+                    conusOnly: true,
                 }
             ],
         };
@@ -1203,7 +1222,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
                         pollError: true,
                         polling: false,
                     });
-                    
+
                     var msg = 'Failed to request drainage area.';
                     if (response.error) {
                         msg += '<br /> Details: ' + response.error;

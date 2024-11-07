@@ -424,7 +424,8 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -458,7 +459,7 @@ def start_analyze_global_land(request, year, format=None):
 
     This endpoint supports year values of 2017, 2018, 2019, 2020, 2021, 2022,
     and 2023.
-    
+
     This endpoint supports global data, as opposed to analyze_land which only
     works with the Continental United States (CONUS). The underlying datasource
     is Impact Observatory's Global Annual LULC layer hosted on AWS Open Registry.  # NOQA
@@ -667,7 +668,8 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -795,7 +797,8 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -849,7 +852,7 @@ def start_analyze_global_streams(request, format=None):
             "result": {
                 "survey": {
                     "displayName": "Streams",
-                    "name": "streams_tdxhydro",
+                    "name": "streams_tdxstreams",
                     "categories": [
                         {
                             "order": 1,
@@ -950,7 +953,7 @@ def start_analyze_global_streams(request, format=None):
         'ag_stream_pct': None,
     }
 
-    datasource = 'tdxhydro'
+    datasource = 'tdxstreams'
 
     return start_celery_job([
         tasks.analyze_streams.s(
@@ -1029,7 +1032,8 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -1088,7 +1092,8 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -1174,7 +1179,8 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
@@ -1235,7 +1241,8 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
@@ -1300,7 +1307,8 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1435,7 +1443,8 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1602,7 +1611,8 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='DRB_SIMPLE')
 
     errs = []
     if not key:
@@ -1610,18 +1620,6 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     if key not in settings.DREXEL_FAST_ZONAL_API['keys']:
         errs.append('`key` must be one of "{}".'.format(
             '", "'.join(settings.DREXEL_FAST_ZONAL_API['keys'])))
-
-    # A little redundant since GeoJSON -> GEOSGeometry is already done once
-    # within _parse_analyze_input, but it is not returned from there and
-    # changing that API could break many things.
-    geom = GEOSGeometry(area_of_interest, srid=4326)
-
-    # In the front-end, we use DRB_SIMPLE_PERIMETER. This is sent from the
-    # back-end on every page render, and is considerably lighter ~0.2% than
-    # the actual perimeter. We use the same here for consistency.
-    if not geom.within(settings.DRB_SIMPLE_PERIMETER):
-        errs.append('The area of interest must be within the'
-                    ' Delaware River Basin.')
 
     if errs:
         return Response({'errors': errs}, status=status.HTTP_400_BAD_REQUEST)
@@ -1647,7 +1645,7 @@ def start_analyze_drainage_area(request, format=None):
     Runs GWLF-E on the HUC-12 that contains this drainage area, calculated
     via its centroid, and then scales the results to the land use of the
     drainage area.
-    
+
     For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/).  # NOQA
 
     ## Response
@@ -1929,7 +1927,8 @@ def start_analyze_drainage_area(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _, _ = _parse_analyze_input(request)
+    area_of_interest, _, _ = _parse_analyze_input(request,
+                                                  perimeter='CONUS')
 
     geom = GEOSGeometry(area_of_interest, srid=4326)
 
@@ -1966,7 +1965,8 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
@@ -2001,7 +2001,8 @@ def start_modeling_gwlfe_prepare(request, format=None):
     the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(request)
+    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(
+        request, perimeter='CONUS')
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
@@ -2248,7 +2249,7 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
     )
 
 
-def _parse_analyze_input(request):
+def _parse_analyze_input(request, perimeter=None):
     """
     Parses analyze requests and returns area_of_interest, wkaoi, and msg.
 
@@ -2264,13 +2265,16 @@ def _parse_analyze_input(request):
 
     If the request is in the old style, returns a msg list which includes a
     message for users warning about upcoming deprecation.
+
+    If a valid perimeter is specified, then a validation error is raised if
+    the area of interest is not contained within it.
     """
     msg = []
 
     if ('area_of_interest' in request.data or
             'wkaoi' in request.data or
             'huc' in request.data):
-        area_of_interest, wkaoi = _parse_aoi(request.data)
+        area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
         return area_of_interest, wkaoi, msg
 
     # TODO Remove this message when old style /analyze/ input is deprecated
@@ -2290,15 +2294,18 @@ def _parse_analyze_input(request):
     return area_of_interest, wkaoi, msg
 
 
-def _parse_modeling_input(request):
+def _parse_modeling_input(request, perimeter=None):
     validate_gwlfe_prepare(request.data)
     layer_overrides = request.data.get('layer_overrides', {})
-    area_of_interest, wkaoi = _parse_aoi(request.data)
+    area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
 
     return area_of_interest, wkaoi, layer_overrides
 
 
-def _parse_aoi(data):
+def _parse_aoi(data, perimeter=None):
+    if perimeter:
+        data['perimeter'] = perimeter
+
     serializer = AoiSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     area_of_interest = serializer.validated_data.get('area_of_interest')

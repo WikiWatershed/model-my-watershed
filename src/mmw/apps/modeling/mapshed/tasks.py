@@ -34,7 +34,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
-DRB = settings.DRB_SIMPLE_PERIMETER
+DRB = settings.PERIMETERS['DRB_SIMPLE']['geom']
 ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001

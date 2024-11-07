@@ -28,7 +28,7 @@ load_boundary=false
 file_to_load=
 load_stream=false
 load_hires_stream=false
-load_tdxhydro_streams=false
+load_tdx_streams=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
@@ -48,7 +48,7 @@ while getopts ":hbsSdtpmqcf:x:" opt; do
         d)
             load_drb_streams=true ;;
         t)
-            load_tdxhydro_streams=true ;;
+            load_tdx_streams=true ;;
         p)
             load_dep=true ;;
         m)
@@ -167,12 +167,12 @@ if [ "$load_drb_streams" = "true" ] ; then
     purge_tile_cache $PATHS
 fi
 
-if [ "$load_tdxhydro_streams" = "true" ] ; then
+if [ "$load_tdx_streams" = "true" ] ; then
     # Included here for completion. Given how EXTREMELY LARGE
     # this dataset is, manually downloading first, then uncompressing
     # with pigz, then importing may work better. Compressed dataset
     # is about 32GB, uncompressed is about 110GB.
-    FILES=("tdxhydro.sql.gz")
+    FILES=("tdxstreams.sql.gz")
     PATHS=("tdxhydro_streams_v1")
 
     download_and_load $FILES

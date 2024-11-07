@@ -26,42 +26,62 @@ TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
-# Full perimeter of the Delaware River Basin (DRB).
-drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
-with open(drb_perimeter_path) as drb_perimeter_file:
-    drb_perimeter = json.load(drb_perimeter_file)
+PERIMETERS = {
+    # Full perimeter of the Delaware River Basin (DRB).
+    'DRB': {
+        'label': 'Delaware River Basin',
+        'file': 'data/drb_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered (3 mi) and simplified perimeter of the DRB.
+    'DRB_SIMPLE': {
+        'label': 'Delaware River Basin',
+        'file': 'data/drb_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Simplified perimeter of PA, used for DEP specific layers
+    'PA': {
+        'label': 'Pennsylvania',
+        'file': 'data/pa_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
+    # perimeter of the NHD Mid Atlantic Region (02)
+    # Not a visible layer, but used for to detect if a point will work for RWD.
+    'NHD': {
+        'label': 'NHD Mid Atlantic Region (02)',
+        'file': 'data/nhd_region2_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Buffered (3 mi) and simplified perimeter of the
+    # Delaware River Watershed Initiative (DRWI)
+    'DRWI': {
+        'label': 'Delaware River Watershed Initiative',
+        'file': 'data/drwi_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+    # Simplified perimeter of the continental US, used to prevent non-CONUS
+    # AoIs from being sent to the API
+    'CONUS': {
+        'label': 'Continental United States',
+        'file': 'data/conus_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
+}
 
-# Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
-drb_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                 'data/drb_simple_perimeter.json')
-with open(drb_simple_perimeter_path) as drb_simple_perimeter_file:
-    drb_simple_perimeter = json.load(drb_simple_perimeter_file)
-
-# Simplified perimeter of PA, used for DEP specific layers
-pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
-with open(pa_perimeter_path) as pa_perimeter_file:
-    pa_perimeter = json.load(pa_perimeter_file)
-
-# Simplified perimeter of the continental US, used to prevent non-CONUS
-# AoIs from being sent to the API
-conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
-with open(conus_perimeter_path) as conus_perimeter_file:
-    CONUS_PERIMETER = json.load(conus_perimeter_file)
-
-# Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
-# perimeter of the NHD Mid Atlantic Region (02)
-# Not a visible layer, but used for to detect if a point will work for RWD.
-nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                         'data/nhd_region2_simple_perimeter.json')
-with open(nhd_region2_simple_perimeter_path) as nhd_region2_simple_perimeter_file:
-    NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
-
-# Buffered (3 mi) and simplified perimeter of the
-# Delaware River Watershed Initiative (DRWI)
-drwi_simple_perimeter_path = join(dirname(abspath(__file__)),
-                                  'data/drwi_simple_perimeter.json')
-with open(drwi_simple_perimeter_path) as drwi_simple_perimeter_file:
-    DRWI_SIMPLE_PERIMETER_JSON = json.load(drwi_simple_perimeter_file)
+# Populate perimeters
+for key, data in PERIMETERS.items():
+    perimeter_path = join(dirname(abspath(__file__)), data['file'])
+    with open(perimeter_path) as perimeter_file:
+        data['json'] = json.load(perimeter_file)
+        data['geom'] = GEOSGeometry(json.dumps(data['json']['geometry']),
+                                    srid=4326)
 
 # helper function to compose the config dicts for the IO LULC layers
 def _make_lulc_config(year):
@@ -73,7 +93,7 @@ def _make_lulc_config(year):
         'helptext': 'Global land use/land cover dataset produced by '
                     'Impact Observatory, Microsoft, and Esri, derived from '
                     'ESA Sentinel-2 imagery at 10 meter resolution.',
-        'url': f'https://{TILER_HOST}/titiler/io-lulc/{year}' + '/{z}/{x}/{y}.png',
+        'url': f'//{TILER_HOST}/titiler/io-lulc/{year}' + '/{z}/{x}/{y}.png',
         'maxNativeZoom': 18,
         'maxZoom': 18,
         'opacity': 0.618,
@@ -119,8 +139,6 @@ LAYER_GROUPS = {
         },
     ],
     'coverage': [
-        # IO LULC layers for 2023-2017, using a helper function to avoid lots of repetition
-        *[_make_lulc_config(yr) for yr in range(2023, 2016, -1)],
         {
             'display': 'Land Use/Cover 2019 (NLCD19)',
             'code': 'nlcd-2019_2019',
@@ -134,6 +152,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -149,6 +168,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -164,6 +184,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -179,6 +200,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -194,6 +216,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -209,8 +232,11 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
+        # IO LULC layers for 2023-2017, using a helper function to avoid lots of repetition
+        *[_make_lulc_config(yr) for yr in range(2023, 2016, -1)],
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
             'code': 'soil',
@@ -235,6 +261,7 @@ LAYER_GROUPS = {
                 SOIL[7],
                 SOIL[4],
             ]),
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -252,6 +279,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'elevation-legend',
             'legend_units_label': 'Elevation (m)',
             'legend_unit_breaks': [-86, 0, 20, 100, 250, 750, 2000, 4413],
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'display': 'Slope (Percent)',
@@ -268,6 +296,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'percent-slope-legend',
             'legend_units_label': 'Slope (%)',
             'legend_unit_breaks': [0, 1, 2, 4, 6, 10, 15, 20, 30, 50, 951],
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'code': 'mean_ppt',
@@ -284,6 +313,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'precipitation-legend',
             'legend_units_label': 'Precipitation (mm/month)',
             'legend_unit_breaks': [0, '', 100, '', 200, '', 300, '', 400, '', 500],
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -301,6 +331,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'temperature-legend',
             'legend_units_label': 'Air Temperature (\xb0C)',
             'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -320,6 +351,7 @@ LAYER_GROUPS = {
                         PROTECTED_LANDS.items(), key=lambda x: x[0]
                 )
             ]),
+            'perimeter': PERIMETERS['CONUS']['json'],
         },
         {
             'display': 'Active River Area - NE & Mid-Atlantic',
@@ -332,6 +364,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'perimeter': PERIMETERS['NHD']['json'],
             'big_cz': False,
         },
         {
@@ -348,6 +381,7 @@ LAYER_GROUPS = {
                 'nonurban': 'Non-urban area',
                 'urban': 'Urban area',
             },
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -364,6 +398,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'shippensburg-legend',
             'legend_units_label': 'Projected Urbanization (%)',
             'legend_unit_breaks': [0, '', 20, '', 40, '', 60, '', 80, '', 100],
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -380,6 +415,7 @@ LAYER_GROUPS = {
             'color_ramp_id': 'shippensburg-legend',
             'legend_units_label': 'Projected Urbanization (%)',
             'legend_unit_breaks': [0, '', 20, '', 40, '', 60, '', 80, '', 100],
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -390,7 +426,7 @@ LAYER_GROUPS = {
             'minZoom': 7,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'perimeter': pa_perimeter,
+            'perimeter': PERIMETERS['PA']['json'],
             'big_cz': False,
             'overlay_codes': ['municipalities'],
             'legend_mapping': {
@@ -404,7 +440,7 @@ LAYER_GROUPS = {
             'short_display': 'TN Loading Rates',
             'table_name': 'drb_catchment_water_quality_tn',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -424,7 +460,7 @@ LAYER_GROUPS = {
             'short_display': 'TP Loading Rates',
             'table_name': 'drb_catchment_water_quality_tp',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -444,7 +480,7 @@ LAYER_GROUPS = {
             'short_display': 'TSS Loading Rates',
             'table_name': 'drb_catchment_water_quality_tss',
             'minZoom': 3,
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'opacity': 0.618,
             'has_opacity_slider': True,
             'css_class_prefix': 'catchment',
@@ -477,6 +513,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 30,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -496,6 +533,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 20,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -516,6 +554,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 10,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -532,6 +571,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 6,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -549,6 +589,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 5,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -565,6 +606,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 8,
             'selectable': True,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
     ],
@@ -575,6 +617,7 @@ LAYER_GROUPS = {
                         ' Stream Network'),
             'table_name': 'nhdflowline',
             'minZoom': 3,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -583,6 +626,7 @@ LAYER_GROUPS = {
                         ' Stream Network'),
             'table_name': 'nhdflowlinehr',
             'minZoom': 8,
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': True,
         },
         {
@@ -592,7 +636,7 @@ LAYER_GROUPS = {
             'table_name': 'drb_streams_50',
             'minZoom': 5,
             # Layer selectable only when viewport overlaps perimeter polygon
-            'perimeter': drb_simple_perimeter,
+            'perimeter': PERIMETERS['DRB_SIMPLE']['json'],
             'big_cz': False,
         },
         {
@@ -609,6 +653,7 @@ LAYER_GROUPS = {
                 4: 'Less than 4 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -625,6 +670,7 @@ LAYER_GROUPS = {
                 4: 'Less than 0.12 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -641,6 +687,7 @@ LAYER_GROUPS = {
                 4: 'Less than 200 mg/L',
                 'NA': 'No Data'
             },
+            'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
         },
         {
@@ -664,7 +711,7 @@ LAYER_GROUPS = {
         {
             'code': 'tdxhydro_streams_v1',
             'display': ('TDX Hydro'),
-            'table_name': 'tdxhydro',
+            'table_name': 'tdxstreams',
             'minZoom': 5,
         },
     ],
@@ -676,14 +723,8 @@ STREAM_TABLES = {
     'nhd': 'nhdflowline',
     'nhdhr': 'nhdflowlinehr',
     'drb': 'drb_streams_50',
-    'tdxhydro': 'tdxhydro',
+    'tdxstreams': 'tdxstreams',
 }
-
-DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
-DRB_SIMPLE_PERIMETER = \
-    GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
-DRWI_SIMPLE_PERIMETER = \
-    GEOSGeometry(json.dumps(DRWI_SIMPLE_PERIMETER_JSON['geometry']), srid=4326)
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors

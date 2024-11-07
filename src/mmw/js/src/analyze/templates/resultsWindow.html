@@ -33,40 +33,62 @@
         <div role="tabpanel" id="analyze-tab-contents"
             class="tab-pane analyze-stage-results-tab-pane"></div>
         <div role="tabpanel" id="monitor-tab-contents"
-             class="tab-pane analyze-stage-monitor-tab-pane"></div>
+             class="tab-pane analyze-stage-monitor-tab-pane">
+            {% if not isInConus %}
+                <div class="output-tabs-wrapper">
+                    <div class="tab-content">
+                        <h3 style="margin: 12px 0">Monitoring Unavailable</h3>
+                        <p>
+                            Monitoring is only available within the Continental United States.
+                            To monitor a watershed, please change the area of interest to be
+                            contained within the Continental United States.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
         <div role="tabpanel" id="model-tab-contents"
              class="tab-pane analyze-stage-model-tab-pane">
             <div class="output-tabs-wrapper">
                 <div class="tab-content">
-                    <h3>Select a Model</h3>
-                    <p>
-                        Chose one of two models to simulate stormwater runoff
-                        and water quality, to create different conservation and
-                        development scenarios, and to compare human impacts of
-                        these scenarios.
-                    </p>
-                    {% for model_package in model_packages %}
-                        <div class="model-package">
-                            {% if model_package.disabled %}
-                                <a href="#" data-id="{{ model_package.name }}"
-                                   class="analyze-model-package-link disabled"
-                                >
-                                    {{ model_package.display_name }}
-                                    (Coming Soon)
-                                </a>
-                            {% else %}
-                                <a href="#" data-id="{{ model_package.name }}"
-                                   class="analyze-model-package-link"
-                                >
-                                    <div class="analyze-model-name">
+                    {% if isInConus %}
+                        <h3>Select a Model</h3>
+                        <p>
+                            Chose one of two models to simulate stormwater runoff
+                            and water quality, to create different conservation and
+                            development scenarios, and to compare human impacts of
+                            these scenarios.
+                        </p>
+                        {% for model_package in model_packages %}
+                            <div class="model-package">
+                                {% if model_package.disabled %}
+                                    <a href="#" data-id="{{ model_package.name }}"
+                                    class="analyze-model-package-link disabled"
+                                    >
                                         {{ model_package.display_name }}
-                                    </div>
-                                    <p>{{ model_package.description }}</p>
-                                </a>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <hr />
+                                        (Coming Soon)
+                                    </a>
+                                {% else %}
+                                    <a href="#" data-id="{{ model_package.name }}"
+                                    class="analyze-model-package-link"
+                                    >
+                                        <div class="analyze-model-name">
+                                            {{ model_package.display_name }}
+                                        </div>
+                                        <p>{{ model_package.description }}</p>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <hr />
+                    {% else %}
+                        <h3 style="margin: 12px 0">Modeling Unavailable</h3>
+                        <p>
+                            Modeling is only available within the Continental United States.
+                            To model a watershed, please change the area of interest to be
+                            contained within the Continental United States.
+                        </p>
+                    {% endif %}
                     <div id="worksheet-export-region"></div>
                 </div>
             </div>

@@ -81,15 +81,25 @@ var ResultsView = Marionette.LayoutView.extend({
         worksheetRegion: '#worksheet-export-region',
     },
 
-    templateHelpers: {
-        'data_catalog_enabled': settings.get('data_catalog_enabled'),
-        'model_packages': settings.get('model_packages'),
+    templateHelpers: function() {
+        return {
+            'data_catalog_enabled': settings.get('data_catalog_enabled'),
+            'model_packages': settings.get('model_packages'),
+            'isInConus': this.isInConus,
+        };
+    },
+
+    initialize: function() {
+        this.isInConus = utils.isInConus(App.map.get('areaOfInterest'));
     },
 
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
-        this.showWorksheetExportRegion();
+
+        if (this.isInConus) {
+            this.showWorksheetExportRegion();
+        }
     },
 
     onRender: function() {
@@ -110,9 +120,11 @@ var ResultsView = Marionette.LayoutView.extend({
             collection: this.collection
         }));
 
-        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
-            App.getDataCatalog()
-        ));
+        if (this.isInConus) {
+            this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+                App.getDataCatalog()
+            ));
+        }
     },
 
     showWorksheetExportRegion: function() {
@@ -403,7 +415,7 @@ var TabContentView = Marionette.LayoutView.extend({
             showTaskOutput = _.bind(this.showTaskOutput, this);
 
         model.get('tasks').forEach(function(task) {
-            listenTo(task, 'change:status', function(taskModel) {
+            listenTo(task, 'change:status change:error', function(taskModel) {
                 if (taskModel.get('name') === model.getActiveTask().get('name')) {
                     showTaskOutput();
                 }
@@ -438,6 +450,12 @@ var TabContentView = Marionette.LayoutView.extend({
 
         if (err && err.timeout) {
             tmvModel.setTimeoutError();
+        } else if (err && err.responseJSON) {
+            if (err.responseJSON.length === 1) {
+                tmvModel.setError('Error: ' + err.responseJSON[0]);
+            } else if (err.reponseJSON.length > 1) {
+                tmvModel.setError('Errors: ' + err.responseJSON.join(', '));
+            }
         } else {
             tmvModel.setError('Error');
         }
@@ -472,7 +490,7 @@ var TabContentView = Marionette.LayoutView.extend({
                 this.showAnalyzingMessage();
             } else if (status === 'complete') {
                 this.showResults();
-            } else if (status === 'failed') {
+            } else if (!!error) {
                 this.showErrorMessage(error);
             }
         }
@@ -890,7 +908,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             agPercent = data.first().ag_stream_pct,
             lengthInAg = totalLength * agPercent,
             lengthInNonAg = totalLength - lengthInAg,
-            isGlobal = this.options.isGlobal;
+            conusOnly = this.options.conusOnly;
 
         return {
             lengthUnit: lengthUnit,
@@ -898,7 +916,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,
             lengthInNonAg: lengthInNonAg,
-            isGlobal: isGlobal,
+            conusOnly: conusOnly,
         };
     },
 });
@@ -1308,7 +1326,7 @@ var ChartView = Marionette.ItemView.extend({
                isPercentage: true,
                barClasses: _.map(data, 'class')
            };
-        
+
         // Custom margins as needed
         if (name.startsWith('global_land_io_')) {
             chartOptions.margin = { left: 160 };
@@ -1394,7 +1412,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
             units: units,
             collection: census,
             modelName: this.model.get('name'),
-            isGlobal: activeTask && activeTask.get('isGlobal'),
+            conusOnly: activeTask && activeTask.get('conusOnly'),
         }));
 
         if (AnalyzeChartView) {
@@ -1723,7 +1741,7 @@ var StreamResultView = AnalyzeResultView.extend({
                     source: 'NHDplusV2',
                     associatedLayerCodes: ['nhd_streams_v2'],
                 },
-                streams_tdxhydro: {
+                streams_tdxstreams: {
                     title: 'TDX Hydro Global Stream Network Statistics',
                     source: 'TDX-Hydro',
                     associatedLayerCodes: ['tdxhydro_streams_v1'],
@@ -1761,6 +1779,12 @@ var AnalyzeResultViews = {
     land_2019_2001: LandResultView,
     land_2011_2011: LandResultView,
     global_land_io_2023: LandResultView,
+    global_land_io_2022: LandResultView,
+    global_land_io_2021: LandResultView,
+    global_land_io_2020: LandResultView,
+    global_land_io_2019: LandResultView,
+    global_land_io_2018: LandResultView,
+    global_land_io_2017: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
@@ -1768,7 +1792,7 @@ var AnalyzeResultViews = {
     climate: ClimateResultView,
     streams_nhd: StreamResultView,
     streams_nhdhr: StreamResultView,
-    streams_tdxhydro: StreamResultView,
+    streams_tdxstreams: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,

@@ -1,9 +1,12 @@
 <div>
     <div class="btn-group draw-button-group {{ 'open' if openDrawTool == toolData.id }}">
         <button class="btn btn-lg btn-block draw-tool-button dropdown-toggle {% if activeTitle %} -hasselection {% endif %}"
-            type="button" aria-haspopup="true" aria-expanded="false">
+            type="button" aria-haspopup="true" aria-expanded="false" {{ 'disabled' if not isInConus and toolData.id == 'selectBoundary' }}>
             <p class="draw-button-title pull-left">
                 {{ toolData.title }}
+                {% if not isInConus and toolData.id == 'selectBoundary' %}
+                &mdash; Only within Continental US
+                {% endif %}
             </p>
             <span class="draw-button-icon caret pull-right"></span>
             <p class="draw-button-subtitle pull-left">
@@ -16,12 +19,15 @@
                     <button class="draw-pane-list-item-button" role="button" tabindex="-1"
                           data-min-zoom="{{ item.minZoom }}"
                           href="#" id="{{ item.id }}"
-                          {%- if currentZoomLevel < item.minZoom %}
+                          {%- if (currentZoomLevel < item.minZoom) or (item.conusOnly and not isInConus) %}
                           disabled
                           {% endif -%}>
                         {{ item.title }}
                         {% if currentZoomLevel < item.minZoom %}
                         &mdash; Zoom in to use
+                        {% endif %}
+                        {% if item.conusOnly and not isInConus %}
+                        &mdash; Only within Continental US
                         {% endif %}
                     </button>
                     <a class="help pull-right" data-toggle="popover" tabindex="0" data-html="true"

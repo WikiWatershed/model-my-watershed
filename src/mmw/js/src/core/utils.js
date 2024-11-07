@@ -193,6 +193,26 @@ var utils = {
         return $el.attr('disabled') ? true : false;
     },
 
+    // Given a map reference, returns a polygon of the current viewport
+    viewportPolygon: function(map) {
+        var mapBounds = map.getBounds(),
+            viewportPolygon = {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[
+                        [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat],
+                        [mapBounds.getSouthEast().lng, mapBounds.getSouthEast().lat],
+                        [mapBounds.getSouthWest().lng, mapBounds.getSouthWest().lat],
+                        [mapBounds.getNorthWest().lng, mapBounds.getNorthWest().lat],
+                        [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat]
+                    ]]
+                }
+            };
+
+        return viewportPolygon;
+    },
+
     // A function to enable/disable UI entries in response to zoom
     // level changes.
     zoomToggle: function(map, layerData, actOnUI, actOnLayer) {
@@ -216,20 +236,7 @@ var utils = {
     // (if provided).
     perimeterToggle: function(map, layerData, actOnUI, actOnLayer) {
         function toggleCheck() {
-            var mapBounds = map.getBounds(),
-                viewportPolygon = {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [[
-                            [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat],
-                            [mapBounds.getSouthEast().lng, mapBounds.getSouthEast().lat],
-                            [mapBounds.getSouthWest().lng, mapBounds.getSouthWest().lat],
-                            [mapBounds.getNorthWest().lng, mapBounds.getNorthWest().lat],
-                            [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat]
-                        ]]
-                    }
-                };
+            var viewportPolygon = utils.viewportPolygon(map);
 
             _.forEach(layerData, function(layerDatum) {
                 var perimeter = layerDatum.perimeter;
@@ -597,6 +604,12 @@ var utils = {
         var DRWI_SIMPLE_PERIMETER = settings.get('drwi_simple_perimeter');
 
         return this._containedIn(DRWI_SIMPLE_PERIMETER, geom);
+    }),
+
+    isInConus: _.memoize(function(geom) {
+        var CONUS = settings.get('conus_perimeter');
+
+        return this._containedIn(CONUS, geom);
     }),
 
     // Calculates a range from 0 to the upper bound
