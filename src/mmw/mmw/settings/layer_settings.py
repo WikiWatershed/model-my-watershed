@@ -691,28 +691,10 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
-            'code': 'TDX_streamnet_7020038340_02',
-            'display': 'TDX Streamnet 7020038340',
-            'minZoom': 3,
-            'maxNativeZoom': 12,
-            'maxZoom': 18,
-            'vectorType': True,
-            'url': 'https://{s}.tiles.azavea.com/TDX_streamnet_7020038340_02/{z}/{x}/{y}.pbf',  # NOQA
-        },
-        {
-            'code': 'TDX_streamnet_7020038340_03',
-            'display': 'TDX Streamnet 7020038340 - Ordered',
-            'minZoom': 0,
-            'maxNativeZoom': 13,
-            'maxZoom': 18,
-            'vectorType': True,
-            'url': 'https://{s}.tiles.azavea.com/TDX_streamnet_7020038340_01/{z}/{x}/{y}.pbf',  # NOQA
-        },
-        {
             'code': 'tdxhydro_streams_v1',
             'display': ('TDX Hydro'),
             'table_name': 'tdxstreams',
-            'minZoom': 5,
+            'minZoom': 0,
         },
     ],
 }
