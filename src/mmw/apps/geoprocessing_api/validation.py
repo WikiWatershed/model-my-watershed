@@ -35,6 +35,14 @@ def validate_rwd(location, data_source, snapping, simplify):
     pass
 
 
+def validate_global_rwd(location):
+    if not check_location_format(location):
+        error = create_invalid_rwd_location_format_error_msg(location)
+        raise ValidationError(error)
+
+    pass
+
+
 def create_invalid_rwd_location_format_error_msg(loc):
     return (f'Invalid required `location` parameter value `{loc}`. Must be a '
             '`[lat, lng]` where `lat` and `lng` are numeric.')
