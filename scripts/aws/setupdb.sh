@@ -13,6 +13,7 @@ where options are one or more of: \n
     -s  load/reload stream data\n
     -S  load/reload Hi Res stream data (very large)\n
     -t  load/reload TDX Hydro stream data (EXTREMELY LARGE)\n
+    -B  load/reload TDX Basins data subset\n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
@@ -29,12 +30,13 @@ file_to_load=
 load_stream=false
 load_hires_stream=false
 load_tdx_streams=false
+load_tdx_basins=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
 should_purge_cache=false
 
-while getopts ":hbsSdtpmqcf:x:" opt; do
+while getopts ":hbsSdtBpmqcf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -49,6 +51,8 @@ while getopts ":hbsSdtpmqcf:x:" opt; do
             load_drb_streams=true ;;
         t)
             load_tdx_streams=true ;;
+        B)
+            load_tdx_basins=true ;;
         p)
             load_dep=true ;;
         m)
@@ -177,6 +181,15 @@ if [ "$load_tdx_streams" = "true" ] ; then
 
     download_and_load $FILES
     purge_tile_cache $PATHS
+fi
+
+if [ "$load_tdx_basins" = "true" ] ; then
+    # The actual full dataset is 95GB compressed, 570GB decompressed.
+    # For development we use a subset that is centered around Philadelphia,
+    # in a circle of radius about 200 miles.
+    FILES=("tdxbasins_dev.sql.gz")
+
+    download_and_load $FILES
 fi
 
 if [ "$load_mapshed" = "true" ] ; then
