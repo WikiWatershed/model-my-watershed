@@ -1035,7 +1035,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         };
 
         if (_.includes(['drb', 'nhd'], dataSource)
-            && !coreUtils.isInConus(point)) {
+            && !coreUtils.isInConus(point.geometry)) {
 
             deferred.reject(
                 'The Area of Interest must be within ' +

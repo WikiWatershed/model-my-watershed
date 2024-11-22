@@ -578,6 +578,8 @@ var utils = {
                 return _.flatten(_.flatten(geom.coordinates));
             case 'Polygon':
                 return _.flatten(geom.coordinates);
+            case 'Point':
+                return geom.coordinates;
             default:
                 throw new Error('Unsupported geometry');
         }
