@@ -37,6 +37,7 @@ from apps.geoprocessing_api.calcs import (animal_population,
                                           streams_for_huc12s,
                                           huc12s_with_aois,
                                           drexel_fast_zonal,
+                                          tdx_watershed_for_point,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -87,6 +88,30 @@ def start_rwd_job(location, snapping, simplify, data_source):
         raise Exception(response_json['error'])
 
     return response_json
+
+
+@shared_task
+def start_global_rwd_job(location):
+    """
+    Delineates a watershed using the TDX Basins dataset
+    """
+    lat, lng = location
+    watershed = tdx_watershed_for_point(location)
+
+    return {
+        'input_pt': {
+            'type': 'Feature',
+            'properties': {
+                'Lat': lat,
+                'Lon': lng,
+            },
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [lng, lat],
+            },
+        },
+        'watershed': watershed,
+    }
 
 
 @shared_task

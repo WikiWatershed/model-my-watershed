@@ -435,3 +435,37 @@ def huc12_for_point(point):
     with connection.cursor() as cursor:
         cursor.execute(sql, [point.geojson])
         return cursor.fetchone()
+
+
+def tdx_watershed_for_point(point):
+    """
+    Given a point, returns a watershed that is calculated from the
+    TDX Basins dataset for it. We first identify the basin the point is in,
+    then find all basins with a lower discover time and a higher finish time,
+    then union them to make the final watershed.
+
+    For a full account of this algorithm, see:
+    https://github.com/WikiWatershed/global-hydrography/?tab=readme-ov-file#modified-nested-set-index  # NOQA
+    """
+    lat, lng = point
+    sql = '''
+          WITH target AS (
+            SELECT *
+            FROM tdxbasins
+            WHERE ST_Intersects(geom, ST_SetSRID(ST_Point(%s, %s), 4326))
+          )
+
+          SELECT json_build_object(
+            'type', 'Feature',
+            'properties', '{}'::json,
+            'geometry', ST_AsGeoJSON(ST_Union(geom))::json
+          )
+          FROM tdxbasins
+          WHERE root_id = (SELECT root_id FROM target)
+            AND discover_time <= (SELECT discover_time FROM target)
+            AND finish_time >= (SELECT finish_time FROM target)
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [lng, lat])
+        return cursor.fetchone()[0]

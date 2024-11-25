@@ -45,6 +45,7 @@ from apps.geoprocessing_api.throttling import (BurstRateThrottle,
 
 from apps.geoprocessing_api.validation import (check_exactly_one_provided,
                                                validate_rwd,
+                                               validate_global_rwd,
                                                validate_uuid,
                                                validate_gwlfe_prepare,
                                                validate_gwlfe_run)
@@ -251,6 +252,96 @@ def start_rwd(request, format=None):
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_list.id])}
     )
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.GLOBAL_RWD_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_global_rwd(request, format=None):
+    """
+    Starts a job to run Global Rapid Watershed Delineation.
+
+    Uses a modified nested set index algorithm on the TDX Basins dataset.
+
+    https://github.com/WikiWatershed/global-hydrography/
+
+    ## Request Body
+
+    **Required**
+
+    `location` (`array[number]`): The point to delineate.
+    Format is `[lat, lng]`
+
+    ## Response
+
+    You can use the URL provided in the response's `Location` header
+    to poll for the job's results.
+
+    <summary>
+        **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "watershed": {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [
+                                        -75.24776,
+                                        39.98166
+                                    ],
+                                    [
+                                        -75.24711,
+                                        39.98166
+                                    ]
+                                ], ...
+                            ]
+                        },
+                        "type": "Feature",
+                        "properties": {}
+                    }
+                ]
+            },
+            "input_pt": {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -75.24938,
+                                39.97875
+                            ]
+                        },
+                        "type": "Feature",
+                        "properties": {}
+                    }
+                ]
+            }
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    location = request.data.get('location')
+
+    validate_global_rwd(location)
+
+    return start_celery_job([
+        tasks.start_global_rwd_job.s(location),
+    ], location, user)
 
 
 @swagger_auto_schema(method='post',
