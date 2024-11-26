@@ -462,8 +462,8 @@ def tdx_watershed_for_point(point):
           )
           FROM tdxbasins
           WHERE root_id = (SELECT root_id FROM target)
-            AND discover_time <= (SELECT discover_time FROM target)
-            AND finish_time >= (SELECT finish_time FROM target)
+            AND discover_time >= (SELECT discover_time FROM target)
+            AND finish_time <= (SELECT finish_time FROM target)
           '''
 
     with connection.cursor() as cursor:
