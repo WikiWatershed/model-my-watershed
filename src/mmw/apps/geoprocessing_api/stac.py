@@ -62,13 +62,18 @@ def query_histogram(geojson, url, collection, asset, filter, cachekey=''):
     # Reproject the tiffs and clip to the AoI to make tiles
     clips = []
     for tiff in tiffs:
-        clip_data, clip_transform, clip_meta = clip_and_reproject_tile(
-            tiff, aoi, dst_crs
-        )
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.tif')
-        with rio.open(temp_file.name, 'w', **clip_meta) as dst:
-            dst.write(clip_data)
-        clips.append(temp_file.name)
+        try:
+            clip_data, clip_transform, clip_meta = clip_and_reproject_tile(
+                tiff, aoi, dst_crs
+            )
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False, suffix='.tif'
+            )
+            with rio.open(temp_file.name, 'w', **clip_meta) as dst:
+                dst.write(clip_data)
+            clips.append(temp_file.name)
+        except ValueError as e:
+            print(f"Problem: {str(e)} with tiff: {tiff}")
 
     # Merge the clipped rasters
     datasets = [rio.open(clip_path) for clip_path in clips]
