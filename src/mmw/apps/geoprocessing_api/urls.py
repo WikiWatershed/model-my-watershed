@@ -62,7 +62,4 @@ urlpatterns = [
             views.start_modeling_subbasin_run,
             name='start_modeling_subbasin_run'),
     re_path(r'watershed/$', views.start_rwd, name='start_rwd'),
-    re_path(r'global-watershed/$',
-            views.start_global_rwd,
-            name='start_global_rwd'),
 ]
