@@ -140,9 +140,11 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
             perimeter = _.find(streamLayers, {code: 'drb_streams_v2'}).perimeter;
             point_outside_message = 'Selected point is outside the Delaware River Basin';
             break;
+        // Bound checking done by delineateWatershed in de600cb
         case utils.NHDHR:
         case utils.NHD:
-            // Bounds checking disabled until #1656 is complete.
+        // No bounds for TDX, it is global
+        case utils.TDX:
             d.resolve(latlng);
             return d.promise();
         default:
@@ -914,6 +916,18 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 minZoom: 0,
                 directions: 'Click a point to delineate a watershed.',
                 conusOnly: true,
+            },
+            {
+                id: utils.TDX,
+                dataSource: utils.TDX,
+                taskName: 'global-watershed',
+                title: 'TDX Global Basins',
+                info: '',
+                shapeType: 'stream',
+                snappingOn: false,
+                minZoom: 0,
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: false,
             }
         ];
     },

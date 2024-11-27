@@ -259,6 +259,7 @@ module.exports = {
     NHD: 'nhd',
     NHDHR: 'nhdhr',
     DRB: 'drb',
+    TDX: 'tdx',
     CANCEL_DRAWING: CANCEL_DRAWING,
     POINT: 'point',
     STREAM: 'stream',

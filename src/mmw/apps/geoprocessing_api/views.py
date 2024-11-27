@@ -135,7 +135,10 @@ def start_rwd(request, format=None):
                   "drb" to use Delaware High Resolution (10m)
                   or "nhd" to use Continental US High Resolution (30m).
                   Default is "drb". Points must be in the Delaware River
-                  Basin to use "drb", and in the Continental US to use "nhd"
+                  Basin to use "drb", and in the Continental US to use "nhd".
+                  "tdx" is used for TDX Global Basins, and will work around
+                  the world. "tdx" will have empty properties for both the
+                  returned point and watershed.
 
     `snappingOn` (`boolean`): Snap to the nearest stream? Default is false
 
@@ -233,6 +236,13 @@ def start_rwd(request, format=None):
     snapping = request.data.get('snappingOn', False)
     simplify = request.data.get('simplify', False)
 
+    if data_source == 'tdx':
+        validate_global_rwd(location)
+
+        return start_celery_job([
+            tasks.start_global_rwd_job.s(location),
+        ], location, user)
+
     validate_rwd(location, data_source, snapping, simplify)
 
     job = Job.objects.create(created_at=created, result='', error='',
@@ -252,96 +262,6 @@ def start_rwd(request, format=None):
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_list.id])}
     )
-
-
-@swagger_auto_schema(method='post',
-                     request_body=schemas.GLOBAL_RWD_REQUEST,
-                     responses={200: schemas.JOB_STARTED_RESPONSE})
-@decorators.api_view(['POST'])
-@decorators.authentication_classes((SessionAuthentication,
-                                    TokenAuthentication, ))
-@decorators.permission_classes((IsAuthenticated, ))
-@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
-@log_request
-def start_global_rwd(request, format=None):
-    """
-    Starts a job to run Global Rapid Watershed Delineation.
-
-    Uses a modified nested set index algorithm on the TDX Basins dataset.
-
-    https://github.com/WikiWatershed/global-hydrography/
-
-    ## Request Body
-
-    **Required**
-
-    `location` (`array[number]`): The point to delineate.
-    Format is `[lat, lng]`
-
-    ## Response
-
-    You can use the URL provided in the response's `Location` header
-    to poll for the job's results.
-
-    <summary>
-        **Example of a completed job's `result`**
-    </summary>
-
-    <details>
-
-        {
-            "watershed": {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [
-                                [
-                                    [
-                                        -75.24776,
-                                        39.98166
-                                    ],
-                                    [
-                                        -75.24711,
-                                        39.98166
-                                    ]
-                                ], ...
-                            ]
-                        },
-                        "type": "Feature",
-                        "properties": {}
-                    }
-                ]
-            },
-            "input_pt": {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [
-                                -75.24938,
-                                39.97875
-                            ]
-                        },
-                        "type": "Feature",
-                        "properties": {}
-                    }
-                ]
-            }
-        }
-
-    </details>
-    """
-    user = request.user if request.user.is_authenticated else None
-    location = request.data.get('location')
-
-    validate_global_rwd(location)
-
-    return start_celery_job([
-        tasks.start_global_rwd_job.s(location),
-    ], location, user)
 
 
 @swagger_auto_schema(method='post',
