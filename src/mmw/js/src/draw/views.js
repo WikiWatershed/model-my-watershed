@@ -883,7 +883,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             {
                 id: utils.NHD,
                 dataSource: utils.NHD,
-                title: 'Continental US Medium Resolution',
+                title: 'Continental US from NHDplus v2',
                 info: 'Click on the map to select the nearest downhill ' +
                       'point on the medium resolution flow lines of the ' +
                       'National Hydrography Dataset (NHDplus v2). The ' +
@@ -902,7 +902,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             {
                 id: utils.DRB,
                 dataSource: utils.DRB,
-                title: 'Delaware High Resolution',
+                title: 'Delaware River Basin from 10m NED',
                 info: 'Click on the map to select the nearest downhill ' +
                       'point on our Delaware River Basin high resolution ' +
                       'stream network. The watershed area upstream of this ' +
@@ -921,8 +921,14 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 id: utils.TDX,
                 dataSource: utils.TDX,
                 taskName: 'global-watershed',
-                title: 'TDX Global Basins',
-                info: '',
+                title: 'Global Basins from TDX-Hydro',
+                info: 'Click on the map to select the nearest stream ' +
+                      'reach from the global TDX-Hydro hydrographic ' +
+                      'dataset. The watershed area including and upstream ' +
+                      'of the selected stream reach is automatically ' +
+                      'delineated.<br />See ' +
+                      '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                      'our documentation on Delineate Watershed.</a>',
                 shapeType: 'stream',
                 snappingOn: false,
                 minZoom: 0,
