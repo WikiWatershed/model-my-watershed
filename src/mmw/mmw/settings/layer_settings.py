@@ -630,6 +630,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
+            'code': 'tdxhydro_streams_v1',
+            'display': ('Global Stream Network from TDX-Hydro'),
+            'table_name': 'tdxstreams',
+            'minZoom': 0,
+        },
+        {
             'code': 'drb_streams_v2',
             'display': ('Delaware River Basin High Resolution' +
                         ' Stream Network'),
@@ -689,12 +695,6 @@ LAYER_GROUPS = {
             },
             'perimeter': PERIMETERS['CONUS']['json'],
             'big_cz': False,
-        },
-        {
-            'code': 'tdxhydro_streams_v1',
-            'display': ('TDX Hydro'),
-            'table_name': 'tdxstreams',
-            'minZoom': 0,
         },
     ],
 }
