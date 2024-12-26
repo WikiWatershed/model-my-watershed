@@ -37,13 +37,7 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     ui: {
-        downloadCSV: '[data-action="download-csv"]',
         tooltip: 'a.model-results-tooltip',
-        table: '.runoff-table-region'
-    },
-
-    events: {
-        'click @ui.downloadCSV': 'downloadCSV'
     },
 
     modelEvents: {
@@ -110,14 +104,6 @@ var ResultView = Marionette.LayoutView.extend({
 
     onRender: function() {
         this.activateTooltip();
-    },
-
-    downloadCSV: function() {
-        var prefix = 'mapshed_hydrology_',
-            timestamp = new Date().toISOString(),
-            filename = prefix + timestamp;
-
-        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     },
 
     activateTooltip: function() {
@@ -231,6 +217,15 @@ window.sumFormatter = SumFormatter;
 var TableView = Marionette.CompositeView.extend({
     template: tableTmpl,
 
+    ui: {
+        downloadCSV: '[data-action="download-csv"]',
+        table: 'table'
+    },
+
+    events: {
+        'click @ui.downloadCSV': 'downloadCSV'
+    },
+
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
@@ -252,9 +247,18 @@ var TableView = Marionette.CompositeView.extend({
             rows: rows,
             monthNames: monthNames,
         };
-    }
+    },
+
+    downloadCSV: function() {
+        var prefix = 'mapshed_hydrology_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
+    },
 });
 
 module.exports = {
+    TableView: TableView,
     ResultView: ResultView
 };
