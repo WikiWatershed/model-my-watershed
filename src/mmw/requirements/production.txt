@@ -4,3 +4,4 @@ boto3==1.20.5
 django-storages==1.9.1
 boto==2.49.0
 awscli==1.22.5
+ec2-metadata==2.13.0

@@ -174,6 +174,18 @@ RWD_REQUEST = Schema(
     required=['location'],
 )
 
+GLOBAL_RWD_REQUEST = Schema(
+    title='Global Rapid Watershed Delineation Request',
+    type=TYPE_OBJECT,
+    properties={
+        'location': Schema(type=TYPE_ARRAY, items=Schema(type=TYPE_NUMBER),
+                           example=[39.67185812402583, -75.76742706298828],
+                           description='The point to delineate. '
+                                       'Format is [lat, lng].'),
+    },
+    required=['location'],
+)
+
 nlcd_override_allowed_values = '", "'.join([
     'nlcd-2019-30m-epsg5070-512-uint8raw',
     'nlcd-2016-30m-epsg5070-512-uint8raw',

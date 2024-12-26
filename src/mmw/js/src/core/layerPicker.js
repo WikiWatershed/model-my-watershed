@@ -153,8 +153,6 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             layerDisplay: this.model.get('display'),
-            layerClass: this.model.get('active') ? 'layerpicker-title active' : 'layerpicker-title',
-            isDisabled: this.model.get('disabled'),
             useColorRamp: this.model.get('useColorRamp')
         };
     },

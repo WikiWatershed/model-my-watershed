@@ -1,10 +1,10 @@
 ---
 - name: Install Geospatial libraries
   apt:
-    pkg: ["binutils=2.34*",
-          "libproj-dev=6.3.*",
-          "gdal-bin=3.0.*",
-          "libgdal-dev=3.0.*"]
+    pkg: ["binutils=2.38*",
+          "libproj-dev=8.2.*",
+          "gdal-bin=3.4.*",
+          "libgdal-dev=3.4.*"]
     state: present
   when: "['tile-servers'] | is_not_in(group_names)"
 

@@ -1,11 +1,8 @@
-<div class="layerpicker-layer">
-    <button
-        class="{{layerClass}}"
-        {% if isDisabled %}title="This layer is unavailable at this location" disabled {% endif %}
-    >
+<div class="layerpicker-layer {{ 'hidden' if disabled }}">
+    <button class="layerpicker-title {{ 'active' if active }}">
         {{ layerDisplay }}
     </button>
-    {% if not isDisabled and (legendMapping or useColorRamp) %}
+    {% if legendMapping or useColorRamp %}
         <a
             tabindex="-1"
             role="button"

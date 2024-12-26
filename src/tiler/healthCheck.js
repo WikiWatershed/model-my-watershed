@@ -119,9 +119,11 @@ module.exports = function createHealthCheckHandler(config) {
 
         if (!databaseError && !cacheError) {
           statusCode = 200;
+        } else {
+          console.error(response);
         }
 
-        res.send(response, statusCode);
+        res.status(statusCode).send(response);
     });
   };
 };

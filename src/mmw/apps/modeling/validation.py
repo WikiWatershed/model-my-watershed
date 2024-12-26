@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-import json
-
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 from rest_framework.exceptions import ValidationError
 
 
@@ -13,10 +10,6 @@ def validate_aoi(aoi):
 
     if not check_aoi_does_not_self_intersect(aoi):
         error = create_invalid_shape_error_msg(aoi)
-        raise ValidationError(error)
-
-    if not check_shape_in_conus(aoi):
-        error = create_shape_exceeds_conus_error_msg(aoi)
         raise ValidationError(error)
 
     pass
@@ -43,14 +36,3 @@ def create_invalid_shape_error_msg(aoi):
 
 def check_aoi_does_not_self_intersect(aoi):
     return aoi.valid
-
-
-def create_shape_exceeds_conus_error_msg(aoi):
-    return ('Area of interest boundaries must be within the boundaries of the '
-            'continental United States')
-
-
-def check_shape_in_conus(aoi):
-    conus_boundaries = GEOSGeometry(
-        json.dumps(settings.CONUS_PERIMETER['geometry']), 4326)
-    return conus_boundaries.contains(aoi)

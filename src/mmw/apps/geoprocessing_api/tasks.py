@@ -37,6 +37,7 @@ from apps.geoprocessing_api.calcs import (animal_population,
                                           streams_for_huc12s,
                                           huc12s_with_aois,
                                           drexel_fast_zonal,
+                                          tdx_watershed_for_point,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -87,6 +88,30 @@ def start_rwd_job(location, snapping, simplify, data_source):
         raise Exception(response_json['error'])
 
     return response_json
+
+
+@shared_task
+def start_global_rwd_job(location):
+    """
+    Delineates a watershed using the TDX Basins dataset
+    """
+    lat, lng = location
+    watershed = tdx_watershed_for_point(location)
+
+    return {
+        'input_pt': {
+            'type': 'Feature',
+            'properties': {
+                'Lat': lat,
+                'Lon': lng,
+            },
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [lng, lat],
+            },
+        },
+        'watershed': watershed,
+    }
 
 
 @shared_task
@@ -179,6 +204,46 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
             'name': f'land_{nlcd_year}',
             'displayName':
                 f'Land Use/Cover {nlcd_year[5:]} (NLCD{nlcd_year[2:4]})',
+            'categories': categories,
+        }
+    }
+
+
+@shared_task(throws=Exception)
+def analyze_global_land(result, year):
+    if 'error' in result:
+        raise Exception(f'[analyze_global_land_{year}] {result["error"]}')
+
+    histogram = parse(result['result'])
+    pixel_size = result['pixel_size']
+
+    # Count up all the legitimate IO LULC classes
+    # This excludes NODATA which is IO LULC 0
+    total_count = sum(
+        [
+            count
+            for ioclass, count in histogram.items()
+            if ioclass in layer_classmaps.IO_LULC
+        ]
+    )
+
+    categories = []
+
+    for ioclass, (code, name) in layer_classmaps.IO_LULC.items():
+        categories.append(
+            {
+                'area': histogram.get(ioclass, 0) * pixel_size,
+                'code': code,
+                'coverage': float(histogram.get(ioclass, 0)) / total_count,
+                'ioclass': ioclass,
+                'type': name,
+            }
+        )
+
+    return {
+        'survey': {
+            'name': f'global_land_io_{year}',
+            'displayName': f'Global Land Use/Cover {year}',
             'categories': categories,
         }
     }

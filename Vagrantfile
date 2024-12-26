@@ -54,12 +54,12 @@ MMW_EXTRA_VARS = {
 }
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04"
+  config.vm.box = "bento/ubuntu-22.04"
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV["MMW_SERVICES_IP"] || "33.33.34.30"
-    services.disksize.size = '64GB'
+    services.disksize.size = '128GB'
 
     # PostgreSQL
     services.vm.network "forwarded_port", **{
@@ -89,17 +89,7 @@ Vagrant.configure("2") do |config|
       ansible.extra_vars = MMW_EXTRA_VARS
     end
 
-    services.vm.provision "shell" do |s|
-      # The base box we use comes with a ~30GB disk. The physical disk is
-      # expanded to 64GB above using vagrant-disksize. The logical disk and
-      # the file system need to be expanded as well to make full use of the
-      # space. `lvextend` expands the logical disk, and `resize2fs` expands
-      # the files system.
-      s.inline = <<-SHELL
-        sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-        sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
-      SHELL
-    end
+    services.vm.provision "shell", path: "scripts/resize-disk.sh"
   end
 
   config.vm.define "worker" do |worker|

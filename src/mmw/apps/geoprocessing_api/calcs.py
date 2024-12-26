@@ -8,10 +8,12 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.conf import settings
 from django.db import connection
 
+from shapely.geometry import box, shape
+
 from apps.modeling.mapshed.calcs import (animal_energy_units,
                                          get_point_source_table)
 
-DRB = settings.DRB_SIMPLE_PERIMETER
+DRB = settings.PERIMETERS['DRB_SIMPLE']['geom']
 
 ANIMAL_DISPLAY_NAMES = {
     'sheep': 'Sheep',
@@ -23,6 +25,32 @@ ANIMAL_DISPLAY_NAMES = {
     'dairy_cows': 'Cows, Dairy',
     'broilers': 'Chickens, Broilers',
 }
+
+
+def get_albers_crs_for_aoi(aoi):
+    """
+    Return the Albers Equal Area Projection for the given AoI
+
+    Since we want to calculate area, we need to use an Equal Area projection,
+    but this differs based on where you are in the globe. We use rough bounding
+    boxes to see if the shape neatly fits within one of the continents. If not,
+    we fall back to a global approximation.
+    """
+
+    if aoi.within(box(-170, 15, -50, 75)):  # North America
+        return 'EPSG:5070'
+    elif aoi.within(box(-10, 34, 40, 72)):  # Europe
+        return 'EPSG:3035'
+    elif aoi.within(box(25, -10, 180, 60)):  # Asia
+        return 'ESRI:102025'
+    elif aoi.within(box(-20, -35, 55, 38)):  # Africa
+        return 'ESRI:102022'
+    elif aoi.within(box(-90, -60, -30, 15)):  # South America
+        return 'ESRI:102033'
+    elif aoi.within(box(112, -45, 155, -10)):  # Australia
+        return 'ESRI:102034'
+    else:  # Global
+        return 'ESRI:54017'  # Behrmann Equal Area Cylindrical
 
 
 def animal_population(geojson):
@@ -61,6 +89,9 @@ def stream_data(results, geojson, datasource='nhdhr'):
     if datasource not in settings.STREAM_TABLES:
         raise Exception(f'Invalid stream datasource {datasource}')
 
+    aoi = shape(json.loads(geojson))
+    dst_proj = int(get_albers_crs_for_aoi(aoi)[5:])
+
     sql = f'''
         WITH stream_intersection AS (
             SELECT ST_Length(ST_Transform(
@@ -73,7 +104,7 @@ def stream_data(results, geojson, datasource='nhdhr'):
                                              ST_SetSRID(ST_GeomFromGeoJSON(%s),
                                                         4326))
                       END,
-                      5070)) AS lengthm,
+                      {dst_proj})) AS lengthm,
                    stream_order,
                    slope
             FROM {settings.STREAM_TABLES[datasource]}
@@ -404,3 +435,37 @@ def huc12_for_point(point):
     with connection.cursor() as cursor:
         cursor.execute(sql, [point.geojson])
         return cursor.fetchone()
+
+
+def tdx_watershed_for_point(point):
+    """
+    Given a point, returns a watershed that is calculated from the
+    TDX Basins dataset for it. We first identify the basin the point is in,
+    then find all basins with a lower discover time and a higher finish time,
+    then union them to make the final watershed.
+
+    For a full account of this algorithm, see:
+    https://github.com/WikiWatershed/global-hydrography/?tab=readme-ov-file#modified-nested-set-index  # NOQA
+    """
+    lat, lng = point
+    sql = '''
+          WITH target AS (
+            SELECT *
+            FROM tdxbasins
+            WHERE ST_Intersects(geom, ST_SetSRID(ST_Point(%s, %s), 4326))
+          )
+
+          SELECT json_build_object(
+            'type', 'Feature',
+            'properties', '{}'::json,
+            'geometry', ST_AsGeoJSON(ST_Union(geom))::json
+          )
+          FROM tdxbasins
+          WHERE root_id = (SELECT root_id FROM target)
+            AND discover_time >= (SELECT discover_time FROM target)
+            AND finish_time <= (SELECT finish_time FROM target)
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [lng, lat])
+        return cursor.fetchone()[0]

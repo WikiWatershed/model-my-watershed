@@ -48,6 +48,8 @@ TileServerAutoScalingScheduleStartRecurrence: '0 13 * * 1-5'
 TileServerAutoScalingScheduleEndCapacity: '0'
 # 8PM ET
 TileServerAutoScalingScheduleEndRecurrence: '0 1 * * *'
+TiTilerHost: ''
+TiTilerLayerMap: ''
 WorkerInstanceType: 't2.micro'
 # Leaving this commented dynamically looks up the
 # most recent AMI for this type.

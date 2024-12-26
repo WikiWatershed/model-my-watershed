@@ -94,13 +94,11 @@ function validateRwdShape(result) {
 function validateShape(polygon) {
     var d = new $.Deferred(),
         selfIntersectingShape = false,
-        invalidForAnalysis = false,
-        outsideConus = false;
+        invalidForAnalysis = false;
 
     try {
         selfIntersectingShape = utils.isSelfIntersecting(polygon);
         invalidForAnalysis = !utils.isValidForAnalysis(polygon);
-        outsideConus = !utils.withinConus(polygon);
     } catch (exc) {
         d.reject('Error during geometry validation.');
         console.error(exc);
@@ -124,9 +122,6 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxAreaString + '.';
         d.reject(message);
-    } else if (outsideConus) {
-        var conusMessage = 'The area of interest must be within the Continental US.';
-        d.reject(conusMessage);
     } else {
         d.resolve(polygon);
     }
@@ -145,9 +140,11 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
             perimeter = _.find(streamLayers, {code: 'drb_streams_v2'}).perimeter;
             point_outside_message = 'Selected point is outside the Delaware River Basin';
             break;
+        // Bound checking done by delineateWatershed in de600cb
         case utils.NHDHR:
         case utils.NHD:
-            // Bounds checking disabled until #1656 is complete.
+        // No bounds for TDX, it is global
+        case utils.TDX:
             d.resolve(latlng);
             return d.promise();
         default:
@@ -568,6 +565,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
     initialize: function(options) {
         this.resetDrawingState = options.resetDrawingState;
         this.onMapZoom = _.bind(this.onMapZoom, this);
+        this.onMapMove = _.bind(this.onMapMove, this);
 
         var self = this,
             map = App.getLeafletMap();
@@ -580,6 +578,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         });
 
         map.on('zoomend', this.onMapZoom);
+        map.on('moveend', this.onMapMove);
     },
 
     templateHelpers: function() {
@@ -607,6 +606,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     onShow: function() {
         this.activatePopovers();
+        this.onMapMove();
     },
 
     onRender: function() {
@@ -619,6 +619,14 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             this.resetDrawingState();
         }
         this.render();
+    },
+
+    onMapMove: function() {
+        var map = App.getLeafletMap(),
+            viewportPolygon = coreUtils.viewportPolygon(map),
+            conus = settings.get('conus_perimeter');
+
+        this.model.set('isInConus', turfIntersect(conus, viewportPolygon));
     },
 
     getActiveToolDataItem: function() {
@@ -643,6 +651,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         var map = App.getLeafletMap();
 
         map.off('zoomend', this.onMapZoom);
+        map.off('moveend', this.onMapMove);
     }
 });
 
@@ -675,7 +684,8 @@ var SelectBoundaryView = DrawToolBaseView.extend({
                     title: shapeType.display,
                     info: shapeType.helptext,
                     minZoom: shapeType.minZoom,
-                    directions: directions
+                    directions: directions,
+                    conusOnly: true,
                 };
             });
 
@@ -788,7 +798,8 @@ var DrawAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Draw Area.</a>',
                     minZoom: 0,
-                    directions: 'Draw a boundary.'
+                    directions: 'Draw a boundary.',
+                    conusOnly: false,
                 },
                 {
                     id: squareKm,
@@ -799,7 +810,8 @@ var DrawAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Draw Area.</a>',
                     minZoom: 0,
-                    directions: 'Click a point.'
+                    directions: 'Click a point.',
+                    conusOnly: false,
                 }
             ]
         };
@@ -871,7 +883,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             {
                 id: utils.NHD,
                 dataSource: utils.NHD,
-                title: 'Continental US Medium Resolution',
+                title: 'Continental US from NHDplus v2',
                 info: 'Click on the map to select the nearest downhill ' +
                       'point on the medium resolution flow lines of the ' +
                       'National Hydrography Dataset (NHDplus v2). The ' +
@@ -884,12 +896,13 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
-                directions: 'Click a point to delineate a watershed.'
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: true,
             },
             {
                 id: utils.DRB,
                 dataSource: utils.DRB,
-                title: 'Delaware High Resolution',
+                title: 'Delaware River Basin from 10m NED',
                 info: 'Click on the map to select the nearest downhill ' +
                       'point on our Delaware River Basin high resolution ' +
                       'stream network. The watershed area upstream of this ' +
@@ -901,7 +914,26 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
-                directions: 'Click a point to delineate a watershed.'
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: true,
+            },
+            {
+                id: utils.TDX,
+                dataSource: utils.TDX,
+                taskName: 'global-watershed',
+                title: 'Global Basins from TDX-Hydro',
+                info: 'Click on the map to select the nearest stream ' +
+                      'reach from the global TDX-Hydro hydrographic ' +
+                      'dataset. The watershed area including and upstream ' +
+                      'of the selected stream reach is automatically ' +
+                      'delineated.<br />See ' +
+                      '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                      'our documentation on Delineate Watershed.</a>',
+                shapeType: 'stream',
+                snappingOn: false,
+                minZoom: 0,
+                directions: 'Click a point to delineate a watershed.',
+                conusOnly: false,
             }
         ];
     },
@@ -1022,8 +1054,13 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             contentType: 'application/json'
         };
 
-        if (!utils.withinConus(point)) {
-            deferred.reject('The area of interest must be within the Continental US.');
+        if (_.includes(['drb', 'nhd'], dataSource)
+            && !coreUtils.isInConus(point.geometry)) {
+
+            deferred.reject(
+                'The Area of Interest must be within ' +
+                'the Continental United States.'
+            );
         } else {
             this.rwdTaskModel.start(taskHelper);
         }
@@ -1087,7 +1124,8 @@ var DrainageAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Drainage Area.</a>',
                     minZoom: 0,
-                    directions: 'Click a point.'
+                    directions: 'Click a point.',
+                    conusOnly: true,
                 },
                 {
                     id: drainageStream,
@@ -1099,7 +1137,8 @@ var DrainageAreaView = DrawToolBaseView.extend({
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'our documentation on Drainage Area.</a>',
                     minZoom: 0,
-                    directions: 'Draw a boundary around a stream.'
+                    directions: 'Draw a boundary around a stream.',
+                    conusOnly: true,
                 }
             ],
         };
@@ -1203,7 +1242,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
                         pollError: true,
                         polling: false,
                     });
-                    
+
                     var msg = 'Failed to request drainage area.';
                     if (response.error) {
                         msg += '<br /> Details: ' + response.error;

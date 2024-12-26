@@ -11,6 +11,8 @@ var Backbone = require('../../shim/backbone'),
     settings = require('./settings'),
     coreUnits = require('./units');
 
+require('../../shim/Leaflet.MapboxVectorTile.umd');
+
 var MapModel = Backbone.Model.extend({
     defaults: {
         lat: 0,
@@ -140,6 +142,7 @@ var LayerModel = Backbone.Model.extend({
         maxZoom: null,
         minZoom: null,
         googleType: false,
+        vectorType: false,
         disabled: false,
         hasOpacitySlider: false,
         hasTimeSlider: false,
@@ -171,6 +174,18 @@ var LayerModel = Backbone.Model.extend({
                     maxZoom: layerSettings.maxZoom
                 });
             }
+        } else if (layerSettings.vectorType) {
+            leafletLayer = new L.TileLayer.MVTSource({
+                url: layerSettings.url,
+                maxZoom: layerSettings.maxZoom,
+                maxNativeZoom: layerSettings.maxNativeZoom,
+                minZoom: layerSettings.minZoom,
+                style: function(feature) {
+                    return {
+                        color: '#1562A9',
+                    };
+                },
+            });
         } else {
             var tileUrl = (layerSettings.url.match(/png/) === null ?
                             layerSettings.url + '.png' : layerSettings.url);
@@ -782,6 +797,10 @@ var ProtectedLandsCensusCollection = Backbone.Collection.extend({
     comparator: 'class_id'
 });
 
+var GlobalLandUseCensusCollection = Backbone.Collection.extend({
+    comparator: 'ioclass'
+});
+
 var SoilCensusCollection = Backbone.Collection.extend({
     comparator: 'code'
 });
@@ -900,6 +919,7 @@ module.exports = {
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,
     ProtectedLandsCensusCollection: ProtectedLandsCensusCollection,
+    GlobalLandUseCensusCollection: GlobalLandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
     ClimateCensusCollection: ClimateCensusCollection,

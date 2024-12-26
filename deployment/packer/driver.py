@@ -18,7 +18,7 @@ LOGGER.setLevel(logging.INFO)
 def get_recent_ubuntu_ami(region, aws_profile):
     """Gets AMI ID for current release in region"""
     filters = {
-        'name': 'ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*',
+        'name': 'ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*',
         'architecture': 'x86_64',
         'root-device-type': 'ebs',
         'virtualization-type': 'hvm',
@@ -59,7 +59,9 @@ def get_git_sha():
                    'rev-parse',
                    'HEAD']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(
+        git_command,
+        universal_newlines=True).rstrip()
 
 
 def get_git_branch():
@@ -69,7 +71,9 @@ def get_git_branch():
                    '--abbrev-ref',
                    'HEAD']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(
+        git_command,
+        universal_newlines=True).rstrip()
 
 
 def get_git_desc():
@@ -81,7 +85,9 @@ def get_git_desc():
                    '--dirty',
                    '--abbrev=40']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(
+        git_command,
+        universal_newlines=True).rstrip()
 
 
 def run_packer(mmw_config, machine_types, aws_profile):

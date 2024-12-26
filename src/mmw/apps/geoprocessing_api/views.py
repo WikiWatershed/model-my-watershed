@@ -37,7 +37,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
 from apps.modeling.serializers import AoiSerializer
 from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
-from apps.geoprocessing_api import exceptions, schemas, tasks
+from apps.geoprocessing_api import exceptions, schemas, stac, tasks
 from apps.geoprocessing_api.calcs import huc12s_for_huc, huc12_for_point
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
@@ -45,6 +45,7 @@ from apps.geoprocessing_api.throttling import (BurstRateThrottle,
 
 from apps.geoprocessing_api.validation import (check_exactly_one_provided,
                                                validate_rwd,
+                                               validate_global_rwd,
                                                validate_uuid,
                                                validate_gwlfe_prepare,
                                                validate_gwlfe_run)
@@ -134,7 +135,10 @@ def start_rwd(request, format=None):
                   "drb" to use Delaware High Resolution (10m)
                   or "nhd" to use Continental US High Resolution (30m).
                   Default is "drb". Points must be in the Delaware River
-                  Basin to use "drb", and in the Continental US to use "nhd"
+                  Basin to use "drb", and in the Continental US to use "nhd".
+                  "tdx" is used for TDX Global Basins, and will work around
+                  the world. "tdx" will have empty properties for both the
+                  returned point and watershed.
 
     `snappingOn` (`boolean`): Snap to the nearest stream? Default is false
 
@@ -231,6 +235,13 @@ def start_rwd(request, format=None):
     data_source = request.data.get('dataSource', 'drb')
     snapping = request.data.get('snappingOn', False)
     simplify = request.data.get('simplify', False)
+
+    if data_source == 'tdx':
+        validate_global_rwd(location)
+
+        return start_celery_job([
+            tasks.start_global_rwd_job.s(location),
+        ], location, user)
 
     validate_rwd(location, data_source, snapping, simplify)
 
@@ -424,7 +435,8 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -440,6 +452,148 @@ def start_analyze_land(request, nlcd_year, format=None):
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
                             layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_global_land(request, year, format=None):
+    """
+    Starts a job to produce a land-use histogram for a given area and year.
+
+    This endpoint supports year values of 2017, 2018, 2019, 2020, 2021, 2022,
+    and 2023.
+
+    This endpoint supports global data, as opposed to analyze_land which only
+    works with the Continental United States (CONUS). The underlying datasource
+    is Impact Observatory's Global Annual LULC layer hosted on AWS Open Registry.  # NOQA
+
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Global Land Use/Cover 2019",
+                "name": "global_land_io_2019",
+                "categories": [
+                    {
+                        "area": 14941947.428126818,
+                        "code": "water",
+                        "coverage": 0.02144532388706757,
+                        "ioclass": 1,
+                        "type": "Water"
+                    },
+                    {
+                        "area": 109588951.93420613,
+                        "code": "trees",
+                        "coverage": 0.15728676465889277,
+                        "ioclass": 2,
+                        "type": "Trees"
+                    },
+                    {
+                        "area": 48464.99853478383,
+                        "code": "flooded_vegetation",
+                        "coverage": 0.00006955904481421345,
+                        "ioclass": 4,
+                        "type": "Flooded vegetation"
+                    },
+                    {
+                        "area": 29756139.065063003,
+                        "code": "crops",
+                        "coverage": 0.042707287182504744,
+                        "ioclass": 5,
+                        "type": "Crops"
+                    },
+                    {
+                        "area": 488978611.8600828,
+                        "code": "built_area",
+                        "coverage": 0.7018030785899226,
+                        "ioclass": 7,
+                        "type": "Built area"
+                    },
+                    {
+                        "area": 535341.2912358101,
+                        "code": "bare_ground",
+                        "coverage": 0.0007683447847676015,
+                        "ioclass": 8,
+                        "type": "Bare ground"
+                    },
+                    {
+                        "area": 0,
+                        "code": "snow_ice",
+                        "coverage": 0,
+                        "ioclass": 9,
+                        "type": "Snow/ice"
+                    },
+                    {
+                        "area": 0,
+                        "code": "clouds",
+                        "coverage": 0,
+                        "ioclass": 10,
+                        "type": "Clouds"
+                    },
+                    {
+                        "area": 52896720.20292212,
+                        "code": "rangeland",
+                        "coverage": 0.07591964185203046,
+                        "ioclass": 11,
+                        "type": "Rangeland"
+                    }
+                ]
+            }
+        }
+
+    </details>
+    """
+    # Validate year
+    AVAILABLE_IO_YEARS = [
+        '2017', '2018', '2019', '2020', '2021', '2022', '2023'
+    ]
+
+    if year not in AVAILABLE_IO_YEARS:
+        raise ValidationError(
+            f'Year {year} is not available for analysis. '
+            f'Only the following are: {", ".join(AVAILABLE_IO_YEARS)}.'
+        )
+
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+
+    filter = {
+        "op": "like",
+        "args": [{"property": "id"}, f"%-{year}"],
+    }
+
+    cachekey = f'{wkaoi}_{year}' if wkaoi else ''
+
+    return start_celery_job([
+        stac.query_histogram.s(
+            area_of_interest,
+            url='https://api.impactobservatory.com/stac-aws',
+            collection='io-10m-annual-lulc',
+            asset='supercell',
+            filter=filter,
+            cachekey=cachekey
+        ),
+        stac.format_as_mmw_geoprocessing.s(),
+        tasks.analyze_global_land.s(year),
     ], area_of_interest, user, messages=msg)
 
 
@@ -525,7 +679,8 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -653,7 +808,8 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -668,6 +824,151 @@ def start_analyze_streams(request, datasource, format=None):
                             cache_key=datasource),
         nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest, datasource, wkaoi)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_global_streams(request, format=None):
+    """
+    Starts a job to display global streams & stream order within a given area of
+    interest.
+
+    Source NGA
+
+    For more information, see the [technical documentation](https://wikiwatershedorg/documentation/mmw-tech/#additional-data-layers)  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location` header
+    to poll for the job's results.
+
+    <summary>
+
+      **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "job_uuid": "cc544e74-22a4-4fd4-952c-ce2c544d1bd7",
+            "status": "complete",
+            "result": {
+                "survey": {
+                    "displayName": "Streams",
+                    "name": "streams_tdxstreams",
+                    "categories": [
+                        {
+                            "order": 1,
+                            "lengthkm": 18.289577474059765,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.09983573564269882,
+                            "avgslope": 0.0054586135619752035
+                        },
+                        {
+                            "order": 2,
+                            "lengthkm": 3.548523360878298,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.010117649720115644,
+                            "avgslope": 0.002851228156382044
+                        },
+                        {
+                            "order": 3,
+                            "lengthkm": 20.23227838302758,
+                            "ag_stream_pct": null,
+                            "total_weighted_slope": 0.029016343773066392,
+                            "avgslope": 0.0014341609592228414
+                        },
+                        {
+                            "order": 4,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 5,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 6,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 7,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 8,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 9,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 10,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        },
+                        {
+                            "order": 999,
+                            "lengthkm": 0,
+                            "ag_stream_pct": null,
+                            "avgslope": null,
+                            "total_weighted_slope": null
+                        }
+                    ]
+                }
+            },
+            "error": "",
+            "started": "2024-09-10T18:35:08.128527Z",
+            "finished": "2024-09-10T18:35:08.269810Z"
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+
+    # We are reusing the Stream Analysis code for NHD streams, which expects
+    # land use intersection results which inform what percentage of the streams
+    # are in agricultural areas. That is not available for TDX streams, so we
+    # pass in a value of None. This field will be ignored by the UI for TDX
+    # streams.
+    fake_results = {
+        'ag_stream_pct': None,
+    }
+
+    datasource = 'tdxstreams'
+
+    return start_celery_job([
+        tasks.analyze_streams.s(
+            fake_results, area_of_interest, datasource, wkaoi)
     ], area_of_interest, user, messages=msg)
 
 
@@ -742,7 +1043,8 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -801,7 +1103,8 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -887,7 +1190,8 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
@@ -948,7 +1252,8 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
@@ -1013,7 +1318,8 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1148,7 +1454,8 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1315,7 +1622,8 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='DRB_SIMPLE')
 
     errs = []
     if not key:
@@ -1323,18 +1631,6 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     if key not in settings.DREXEL_FAST_ZONAL_API['keys']:
         errs.append('`key` must be one of "{}".'.format(
             '", "'.join(settings.DREXEL_FAST_ZONAL_API['keys'])))
-
-    # A little redundant since GeoJSON -> GEOSGeometry is already done once
-    # within _parse_analyze_input, but it is not returned from there and
-    # changing that API could break many things.
-    geom = GEOSGeometry(area_of_interest, srid=4326)
-
-    # In the front-end, we use DRB_SIMPLE_PERIMETER. This is sent from the
-    # back-end on every page render, and is considerably lighter ~0.2% than
-    # the actual perimeter. We use the same here for consistency.
-    if not geom.within(settings.DRB_SIMPLE_PERIMETER):
-        errs.append('The area of interest must be within the'
-                    ' Delaware River Basin.')
 
     if errs:
         return Response({'errors': errs}, status=status.HTTP_400_BAD_REQUEST)
@@ -1360,7 +1656,7 @@ def start_analyze_drainage_area(request, format=None):
     Runs GWLF-E on the HUC-12 that contains this drainage area, calculated
     via its centroid, and then scales the results to the land use of the
     drainage area.
-    
+
     For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/).  # NOQA
 
     ## Response
@@ -1642,7 +1938,8 @@ def start_analyze_drainage_area(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _, _ = _parse_analyze_input(request)
+    area_of_interest, _, _ = _parse_analyze_input(request,
+                                                  perimeter='CONUS')
 
     geom = GEOSGeometry(area_of_interest, srid=4326)
 
@@ -1679,7 +1976,8 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter='CONUS')
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
@@ -1714,7 +2012,8 @@ def start_modeling_gwlfe_prepare(request, format=None):
     the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(request)
+    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(
+        request, perimeter='CONUS')
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
@@ -1961,7 +2260,7 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
     )
 
 
-def _parse_analyze_input(request):
+def _parse_analyze_input(request, perimeter=None):
     """
     Parses analyze requests and returns area_of_interest, wkaoi, and msg.
 
@@ -1977,13 +2276,16 @@ def _parse_analyze_input(request):
 
     If the request is in the old style, returns a msg list which includes a
     message for users warning about upcoming deprecation.
+
+    If a valid perimeter is specified, then a validation error is raised if
+    the area of interest is not contained within it.
     """
     msg = []
 
     if ('area_of_interest' in request.data or
             'wkaoi' in request.data or
             'huc' in request.data):
-        area_of_interest, wkaoi = _parse_aoi(request.data)
+        area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
         return area_of_interest, wkaoi, msg
 
     # TODO Remove this message when old style /analyze/ input is deprecated
@@ -2003,15 +2305,18 @@ def _parse_analyze_input(request):
     return area_of_interest, wkaoi, msg
 
 
-def _parse_modeling_input(request):
+def _parse_modeling_input(request, perimeter=None):
     validate_gwlfe_prepare(request.data)
     layer_overrides = request.data.get('layer_overrides', {})
-    area_of_interest, wkaoi = _parse_aoi(request.data)
+    area_of_interest, wkaoi = _parse_aoi(request.data, perimeter=perimeter)
 
     return area_of_interest, wkaoi, layer_overrides
 
 
-def _parse_aoi(data):
+def _parse_aoi(data, perimeter=None):
+    if perimeter:
+        data['perimeter'] = perimeter
+
     serializer = AoiSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     area_of_interest = serializer.validated_data.get('area_of_interest')

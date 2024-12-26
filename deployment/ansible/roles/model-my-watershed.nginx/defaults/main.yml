@@ -1,0 +1,3 @@
+---
+nginx_version: "stable"
+nginx_delete_default_site: False

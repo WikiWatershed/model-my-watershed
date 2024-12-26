@@ -276,3 +276,126 @@
     line-width:  3.0 * @zoomBase;
   }
 }
+
+#tdxstreams {
+  line-color: @streamColor;
+  line-join: round;
+  line-cap: round;
+}
+
+#tdxstreams[zoom<=4] {
+  [stream_order=8] {
+    line-width: 3.0;
+  }
+  [stream_order=7] {
+    line-width: 2.0;
+  }
+  [stream_order=6] {
+    line-width: 1.0;
+  }
+}
+
+#tdxstreams[zoom>=5][zoom<=6] {
+  [stream_order=8] {
+    line-width: 4.0;
+  }
+  [stream_order=7] {
+    line-width: 3.0;
+  }
+  [stream_order=6] {
+    line-width: 2.0;
+  }
+  [stream_order=5] {
+    line-width: 1.0;
+  }
+}
+
+#tdxstreams[zoom>=7][zoom<=8] {
+  [stream_order=8] {
+    line-width: 5.0;
+  }
+  [stream_order=7] {
+    line-width: 4.0;
+  }
+  [stream_order=6] {
+    line-width: 3.0;
+  }
+  [stream_order=5] {
+    line-width: 2.0;
+  }
+  [stream_order=4] {
+    line-width: 1.0;
+  }
+}
+
+#tdxstreams[zoom>=9][zoom<=10] {
+  [stream_order=8] {
+    line-width: 8.0;
+  }
+  [stream_order=7] {
+    line-width: 7.0;
+  }
+  [stream_order=6] {
+    line-width: 6.0;
+  }
+  [stream_order=5] {
+    line-width: 5.0;
+  }
+  [stream_order=4] {
+    line-width: 3.0;
+  }
+  [stream_order=3] {
+    line-width: 1.0;
+  }
+}
+
+#tdxstreams[zoom>10][zoom<=11] {
+  [stream_order=8] {
+    line-width: 9.0;
+  }
+  [stream_order=7] {
+    line-width: 8.0;
+  }
+  [stream_order=6] {
+    line-width: 7.0;
+  }
+  [stream_order=5] {
+    line-width: 6.0;
+  }
+  [stream_order=4] {
+    line-width: 5.0;
+  }
+  [stream_order=3] {
+    line-width: 3.0;
+  }
+  [stream_order=2] {
+    line-width: 1.0;
+  }
+}
+
+#tdxstreams[zoom>=12] {
+  [stream_order=8] {
+    line-width: 10.0;
+  }
+  [stream_order=7] {
+    line-width: 9.0;
+  }
+  [stream_order=6] {
+    line-width: 8.0;
+  }
+  [stream_order=5] {
+    line-width: 7.0;
+  }
+  [stream_order=4] {
+    line-width: 6.0;
+  }
+  [stream_order=3] {
+    line-width: 5.0;
+  }
+  [stream_order=2] {
+    line-width: 3.0;
+  }
+  [stream_order=1] {
+    line-width: 1.0;
+  }
+}

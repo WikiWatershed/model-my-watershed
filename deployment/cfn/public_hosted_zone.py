@@ -9,20 +9,12 @@ class PublicHostedZone(CustomActionNode):
     INPUTS = {
         'Region': ['global:Region'],
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
-        'BackwardCompatPublicHostedZoneName':
-        ['global:BackwardCompatPublicHostedZoneName'],
         'AppServerLoadBalancerEndpoint':
         ['global:AppServerLoadBalancerEndpoint',
          'Application:AppServerLoadBalancerEndpoint'],
         'AppServerLoadBalancerHostedZoneNameID':
         ['global:AppServerLoadBalancerHostedZoneNameID',
          'Application:AppServerLoadBalancerHostedZoneNameID'],
-        'BackwardCompatAppServerLoadBalancerEndpoint':
-        ['global:BackwardCompatAppServerLoadBalancerEndpoint',
-         'Application:BackwardCompatAppServerLoadBalancerEndpoint'],
-        'BackwardCompatAppServerLoadBalancerHostedZoneNameID':
-        ['global:BackwardCompatAppServerLoadBalancerHostedZoneNameID',
-         'Application:BackwardCompatAppServerLoadBalancerHostedZoneNameID'],
         'StackType': ['global:StackType'],
         'StackColor': ['global:StackColor'],
     }
@@ -44,13 +36,6 @@ class PublicHostedZone(CustomActionNode):
         app_lb_hosted_zone_id = self.get_input(
             'AppServerLoadBalancerHostedZoneNameID')
 
-        backward_compat_hosted_zone_name = self.get_input(
-            'BackwardCompatPublicHostedZoneName')
-        backward_compat_app_lb_endpoint = self.get_input(
-            'BackwardCompatAppServerLoadBalancerEndpoint')
-        backward_compat_app_lb_hosted_zone_id = self.get_input(
-            'BackwardCompatAppServerLoadBalancerHostedZoneNameID')
-
         route53_conn = r53.connect_to_region(region,
                                              profile_name=self.aws_profile)
 
@@ -64,18 +49,6 @@ class PublicHostedZone(CustomActionNode):
                                identifier='Primary',
                                failover='PRIMARY')
         record_sets.commit()
-
-        backward_compat_hosted_zone = route53_conn.get_zone(
-            backward_compat_hosted_zone_name)
-        backward_compat_record_sets = r53.record.ResourceRecordSets(
-            route53_conn, backward_compat_hosted_zone.id)
-        backward_compat_record_sets.add_change(
-            'UPSERT', backward_compat_hosted_zone_name, 'A',
-            alias_hosted_zone_id=backward_compat_app_lb_hosted_zone_id,
-            alias_dns_name=backward_compat_app_lb_endpoint,
-            alias_evaluate_target_health=True, identifier='Primary',
-            failover='PRIMARY')
-        backward_compat_record_sets.commit()
 
         s3_conn = s3.connect_to_region(region,
                                        profile_name=self.aws_profile,

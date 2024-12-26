@@ -81,15 +81,25 @@ var ResultsView = Marionette.LayoutView.extend({
         worksheetRegion: '#worksheet-export-region',
     },
 
-    templateHelpers: {
-        'data_catalog_enabled': settings.get('data_catalog_enabled'),
-        'model_packages': settings.get('model_packages'),
+    templateHelpers: function() {
+        return {
+            'data_catalog_enabled': settings.get('data_catalog_enabled'),
+            'model_packages': settings.get('model_packages'),
+            'isInConus': this.isInConus,
+        };
+    },
+
+    initialize: function() {
+        this.isInConus = utils.isInConus(App.map.get('areaOfInterest'));
     },
 
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
-        this.showWorksheetExportRegion();
+
+        if (this.isInConus) {
+            this.showWorksheetExportRegion();
+        }
     },
 
     onRender: function() {
@@ -110,9 +120,11 @@ var ResultsView = Marionette.LayoutView.extend({
             collection: this.collection
         }));
 
-        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
-            App.getDataCatalog()
-        ));
+        if (this.isInConus) {
+            this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+                App.getDataCatalog()
+            ));
+        }
     },
 
     showWorksheetExportRegion: function() {
@@ -403,7 +415,7 @@ var TabContentView = Marionette.LayoutView.extend({
             showTaskOutput = _.bind(this.showTaskOutput, this);
 
         model.get('tasks').forEach(function(task) {
-            listenTo(task, 'change:status', function(taskModel) {
+            listenTo(task, 'change:status change:error', function(taskModel) {
                 if (taskModel.get('name') === model.getActiveTask().get('name')) {
                     showTaskOutput();
                 }
@@ -438,6 +450,12 @@ var TabContentView = Marionette.LayoutView.extend({
 
         if (err && err.timeout) {
             tmvModel.setTimeoutError();
+        } else if (err && err.responseJSON) {
+            if (err.responseJSON.length === 1) {
+                tmvModel.setError('Error: ' + err.responseJSON[0]);
+            } else if (err.reponseJSON.length > 1) {
+                tmvModel.setError('Errors: ' + err.responseJSON.join(', '));
+            }
         } else {
             tmvModel.setError('Error');
         }
@@ -472,7 +490,7 @@ var TabContentView = Marionette.LayoutView.extend({
                 this.showAnalyzingMessage();
             } else if (status === 'complete') {
                 this.showResults();
-            } else if (status === 'failed') {
+            } else if (!!error) {
                 this.showErrorMessage(error);
             }
         }
@@ -889,7 +907,8 @@ var StreamTableView = Marionette.CompositeView.extend({
             // set, not per stream order, so we use the first value for total.
             agPercent = data.first().ag_stream_pct,
             lengthInAg = totalLength * agPercent,
-            lengthInNonAg = totalLength - lengthInAg;
+            lengthInNonAg = totalLength - lengthInAg,
+            conusOnly = this.options.conusOnly;
 
         return {
             lengthUnit: lengthUnit,
@@ -897,6 +916,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,
             lengthInNonAg: lengthInNonAg,
+            conusOnly: conusOnly,
         };
     },
 });
@@ -1278,6 +1298,8 @@ var ChartView = Marionette.ItemView.extend({
         var name = this.model.get('name');
         if (name.startsWith('land_') || name.startsWith('drb_2100_land_')) {
             return 'nlcd-fill-' + item.nlcd;
+        } else if (name.startsWith('global_land_io_')) {
+            return 'io-lulc-fill-' + item.ioclass;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
         } else if (name === 'protected_lands') {
@@ -1289,6 +1311,7 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var self = this,
+            name = this.model.get('name'),
             chartEl = this.$el.find('.bar-chart').get(0),
             data = _.map(this.collection.toJSON(), function(model) {
                 return {
@@ -1303,6 +1326,11 @@ var ChartView = Marionette.ItemView.extend({
                isPercentage: true,
                barClasses: _.map(data, 'class')
            };
+
+        // Custom margins as needed
+        if (name.startsWith('global_land_io_')) {
+            chartOptions.margin = { left: 160 };
+        }
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
@@ -1373,7 +1401,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.map(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            census = new CategoriesToCensus(categories);
+            census = new CategoriesToCensus(categories),
+            activeTask = this.options.taskGroup.get('activeTask');
 
         if (pageSize) {
             census.setPageSize(pageSize);
@@ -1382,7 +1411,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         this.tableRegion.show(new AnalyzeTableView({
             units: units,
             collection: census,
-            modelName: this.model.get('name')
+            modelName: this.model.get('name'),
+            conusOnly: activeTask && activeTask.get('conusOnly'),
         }));
 
         if (AnalyzeChartView) {
@@ -1425,6 +1455,15 @@ var LandResultView  = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
     },
+    onShowGlobalLandUse: function(taskName) {
+        var year = taskName.substring(15), // global_land_io_2023 => 2023
+            title = 'Global Annual LULC ' + year,
+            source = 'Impact Observatory via AWS Open Registry',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['io-lulc-' + year];
+        this.showAnalyzeResults(coreModels.GlobalLandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
     onShowFutureLandCenters: function() {
         var title = 'DRB 2100 land forecast (Centers)',
             source = 'DRB Future Land Cover - Shippensburg U.',
@@ -1455,8 +1494,12 @@ var LandResultView  = AnalyzeResultView.extend({
                 this.onShowFutureLandCorridors();
                 break;
             default:
-                // e.g. taskName === land_2019_2011
-                this.onShowNlcd(taskName);
+                if (taskName.startsWith('global')) {
+                    this.onShowGlobalLandUse(taskName);
+                } else {
+                    // e.g. taskName === land_2019_2011
+                    this.onShowNlcd(taskName);
+                }
         }
     }
 });
@@ -1687,16 +1730,24 @@ var ClimateResultView = AnalyzeResultView.extend({
 var StreamResultView = AnalyzeResultView.extend({
     onShow: function() {
         var taskName = this.model.get('name'),
-            title = taskName === 'streams_nhdhr' ?
-                    'NHD High Resolution Stream Network Statistics' :
-                    'NHD Medium Resolution Stream Network Statistics',
-            source = taskName === 'streams_nhdhr' ?
-                     'NHDplusHR' :
-                     'NHDplusV2',
+            config = {
+                streams_nhdhr: {
+                    title: 'NHD High Resolution Stream Network Statistics',
+                    source: 'NHDplusHR',
+                    associatedLayerCodes: ['nhd_streams_hr_v1'],
+                },
+                streams_nhd: {
+                    title: 'NHD Medium Resolution Stream Network Statistics',
+                    source: 'NHDplusV2',
+                    associatedLayerCodes: ['nhd_streams_v2'],
+                },
+                streams_tdxstreams: {
+                    title: 'TDX Hydro Global Stream Network Statistics',
+                    source: 'TDX-Hydro',
+                    associatedLayerCodes: ['tdxhydro_streams_v1'],
+                },
+            },
             helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
-            associatedLayerCodes = taskName === 'streams_nhdhr' ?
-                                   ['nhd_streams_hr_v1'] :
-                                   ['nhd_streams_v2'],
             chart = null,
             streamOrderHelpText = [
                 {
@@ -1714,7 +1765,9 @@ var StreamResultView = AnalyzeResultView.extend({
         });
 
         this.showAnalyzeResults(coreModels.StreamsCensusCollection, StreamTableView,
-                                chart, title,source, helpText, associatedLayerCodes);
+                                chart, config[taskName].title,
+                                config[taskName].source, helpText,
+                                config[taskName].associatedLayerCodes);
     },
 });
 
@@ -1725,6 +1778,13 @@ var AnalyzeResultViews = {
     land_2019_2006: LandResultView,
     land_2019_2001: LandResultView,
     land_2011_2011: LandResultView,
+    global_land_io_2023: LandResultView,
+    global_land_io_2022: LandResultView,
+    global_land_io_2021: LandResultView,
+    global_land_io_2020: LandResultView,
+    global_land_io_2019: LandResultView,
+    global_land_io_2018: LandResultView,
+    global_land_io_2017: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
@@ -1732,6 +1792,7 @@ var AnalyzeResultViews = {
     climate: ClimateResultView,
     streams_nhd: StreamResultView,
     streams_nhdhr: StreamResultView,
+    streams_tdxstreams: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,

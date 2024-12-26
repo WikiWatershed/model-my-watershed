@@ -3,6 +3,7 @@ from numbers import Number
 from uuid import UUID
 
 from django.conf import settings
+from django.contrib.gis.geos import Point
 
 from rest_framework.exceptions import ValidationError
 
@@ -16,6 +17,13 @@ def validate_rwd(location, data_source, snapping, simplify):
         error = create_invalid_rwd_data_source_error_msg(data_source)
         raise ValidationError(error)
 
+    if data_source in ['drb', 'nhd'] \
+       and not check_rwd_point_within_conus(location):
+
+        raise ValidationError(
+            '`drb` and `nhd` data sources require `location` be within '
+            'Continental United States.')
+
     if type(snapping) is not bool:
         error = create_invalid_rwd_snapping_error_msg(snapping)
         raise ValidationError(error)
@@ -27,9 +35,17 @@ def validate_rwd(location, data_source, snapping, simplify):
     pass
 
 
+def validate_global_rwd(location):
+    if not check_location_format(location):
+        error = create_invalid_rwd_location_format_error_msg(location)
+        raise ValidationError(error)
+
+    pass
+
+
 def create_invalid_rwd_location_format_error_msg(loc):
     return (f'Invalid required `location` parameter value `{loc}`. Must be a '
-            '`[lat, lng] where `lat` and `lng` are numeric.')
+            '`[lat, lng]` where `lat` and `lng` are numeric.')
 
 
 def check_location_format(loc):
@@ -62,6 +78,14 @@ def create_invalid_rwd_simplify_param_type_error_msg(simplify):
 
 def check_rwd_simplify_param_type(simplify):
     return isinstance(simplify, Number) or simplify is False
+
+
+def check_rwd_point_within_conus(loc):
+    [lat, lng] = loc
+    point = Point(lng, lat)
+    conus = settings.PERIMETERS['CONUS']['geom']
+
+    return conus.contains(point)
 
 
 def validate_uuid(uuid):

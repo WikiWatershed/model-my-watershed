@@ -15,7 +15,8 @@ var ToolbarModel = Backbone.Model.extend({
         pollError: false,
         activeDrawTool: null,
         activeDrawToolItem: null,
-        openDrawTool: null
+        openDrawTool: null,
+        isInConus: true,
     },
 
     reset: function() {
@@ -54,6 +55,7 @@ var ToolbarModel = Backbone.Model.extend({
 // Used for running Rapid Watershed Delineation tasks.
 var RwdTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
+            name: 'rwd',
             taskName: 'watershed',
             taskType: 'api',
             token: settings.get('api_token')

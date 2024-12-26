@@ -49,6 +49,8 @@ class Tiler(StackNode):
         'TileServerAutoScalingScheduleStartRecurrence': ['global:TileServerAutoScalingScheduleStartRecurrence'],  # NOQA
         'TileServerAutoScalingScheduleEndCapacity': ['global:TileServerAutoScalingScheduleEndCapacity'],  # NOQA
         'TileServerAutoScalingScheduleEndRecurrence': ['global:TileServerAutoScalingScheduleEndRecurrence'],  # NOQA
+        'TiTilerHost': ['global:TiTilerHost'],
+        'TiTilerLayerMap': ['global:TiTilerLayerMap'],
         'SSLCertificateARN': ['global:SSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
@@ -169,6 +171,18 @@ class Tiler(StackNode):
                 Default='1',
                 Description='Tile server ASG schedule end capacity'
             ), 'TileServerAutoScalingScheduleEndCapacity')
+
+        self.titiler_host = self.add_parameter(
+            Parameter(
+                'TiTilerHost', Type='String',
+                Description='Fully qualified domain name for TiTiler-MosaicJSON service'
+            ), 'TiTilerHost')
+
+        self.titiler_layer_map = self.add_parameter(
+            Parameter(
+                'TiTilerLayerMap', Type='String',
+                Description='List of layer__year__uuid entries for TiTiler mosaic layers'
+            ), 'TiTilerLayerMap')
 
         self.ssl_certificate_arn = self.add_parameter(Parameter(
             'SSLCertificateARN', Type='String',
@@ -420,6 +434,14 @@ class Tiler(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Join('.', ['tile-cache', Ref(self.public_hosted_zone_name)]), '\n',  # NOQA
+                '  - path: /etc/mmw.d/env/MMW_TITILER_HOST\n',
+                '    permissions: 0440\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.titiler_host), '\n',
+                '  - path: /etc/mmw.d/env/MMW_TITILER_LAYER_MAP\n',
+                '    permissions: 0440\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.titiler_layer_map), '\n',
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',

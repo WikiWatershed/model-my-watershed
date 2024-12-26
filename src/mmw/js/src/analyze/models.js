@@ -77,6 +77,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             // Include this task in Catalog Search results (ie, BigCZ)
             enabledForCatalogMode: false,
             lazy: false, // Will not execute immediately if lazy is true
+            conusOnly: true, // true for CONUS analyses, true for Global ones
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -98,24 +99,27 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             var gaEvent = self.get('name') + '-analyze',
                 gaLabel = utils.isInDrb(aoi) ? 'drb-aoi' : 'national-aoi',
                 gaAoiSize = turfArea(aoi) / 1000000;
-            
+
             utils.gtm('Analyze', gaEvent, gaLabel, parseInt(gaAoiSize));
 
             var isWkaoi = utils.isWKAoIValid(wkaoi),
                 taskHelper = {
                     contentType: 'application/json',
-                    postData: isWkaoi ? 
-                        JSON.stringify({ wkaoi : wkaoi }) : 
-                        JSON.stringify({ area_of_interest : aoi })
+                    postData: isWkaoi ?
+                        JSON.stringify({ wkaoi : wkaoi }) :
+                        JSON.stringify({ area_of_interest : aoi }),
+                    pollFailure: function(err) {
+                        self.set('error', err);
+                    },
+                    startFailure: function(err) {
+                        self.set('error', err);
+                    },
                 },
                 promises = self.start(taskHelper);
 
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
             self.fetchAnalysisPromise
-                .fail(function(err) {
-                    self.set('error', err);
-                })
                 .always(function() {
                     delete self.fetchAnalysisPromise;
                 });
@@ -239,6 +243,15 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     taskName: "analyze/streams/nhdhr",
                     lazy: true,
                 },
+                {
+                    name: "streams_tdxstreams",
+                    displayName: "Global Medium Resolution Streams",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-streams",
+                    lazy: true,
+                    conusOnly: false,
+                },
             ]
         },
         {
@@ -294,6 +307,69 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     enabledForCatalogMode: true
                 },
                 {
+                    name: "global_land_io_2023",
+                    displayName: "Global Annual LULC 2023",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2023",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2022",
+                    displayName: "Global Annual LULC 2022",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2022",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2021",
+                    displayName: "Global Annual LULC 2021",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2021",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2020",
+                    displayName: "Global Annual LULC 2020",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2020",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2019",
+                    displayName: "Global Annual LULC 2019",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2019",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2018",
+                    displayName: "Global Annual LULC 2018",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2018",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
+                    name: "global_land_io_2017",
+                    displayName: "Global Annual LULC 2017",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/global-land/2017",
+                    lazy: true,
+                    conusOnly: false,
+                },
+                {
                     name: "protected_lands",
                     displayName: "Protected lands distribution",
                     area_of_interest: aoi,
@@ -305,14 +381,16 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     displayName: "DRB 2100 land forecast (Centers)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/centers"
+                    taskName: "analyze/drb-2100-land/centers",
+                    lazy: true,
                 },
                 {
                     name: "drb_2100_land_corridors",
                     displayName: "DRB 2100 land forecast (Corridors)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/drb-2100-land/corridors"
+                    taskName: "analyze/drb-2100-land/corridors",
+                    lazy: true,
                 },
             ]
         },
@@ -378,18 +456,6 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                 }
             ]
         },
-        {
-            name: "catchment_water_quality",
-            displayName: "Water Qual",
-            tasks: [
-                {
-                    name: "catchment_water_quality",
-                    area_of_interest: aoi,
-                    wkaoi: wkaoi,
-                    taskName: "analyze/catchment-water-quality"
-                }
-            ]
-        },
     ];
 
     if (settings.get('data_catalog_enabled')) {
@@ -415,6 +481,31 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             // Remove tasks that are DRB only
             .map(function(tg) {
                 tg.tasks = _.reject(tg.tasks, isDrbTask);
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
+    if (!utils.isInConus(aoi)) {
+        var isConusTask = function(task) {
+            return task.conusOnly !== false;
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are CONUS only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isConusTask);
+
+                // Mark the first task in each task group as not lazy,
+                // so the UI has something to show
+                if (tg.tasks.length > 0) {
+                  tg.tasks[0].lazy = false;
+                }
+
                 return tg;
             })
             // Remove task groups with no tasks

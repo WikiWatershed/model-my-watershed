@@ -214,10 +214,6 @@ function isValidForAnalysis(shape) {
     return false;
 }
 
-function withinConus(shape) {
-    return intersect(settings.get('conus_perimeter'), shape);
-}
-
 function getPolygonFromGeoJson(geojson) {
     var polygon = null;
 
@@ -257,13 +253,13 @@ module.exports = {
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isSelfIntersecting: isSelfIntersecting,
     isValidForAnalysis: isValidForAnalysis,
-    withinConus: withinConus,
     getPolygonFromGeoJson: getPolygonFromGeoJson,
     getSquareKmBoxForPoint: getSquareKmBoxForPoint,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     NHDHR: 'nhdhr',
     DRB: 'drb',
+    TDX: 'tdx',
     CANCEL_DRAWING: CANCEL_DRAWING,
     POINT: 'point',
     STREAM: 'stream',

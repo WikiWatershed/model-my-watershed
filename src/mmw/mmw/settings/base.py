@@ -16,10 +16,8 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from mmw.settings.layer_settings import (
-    LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-    DRB_PERIMETER, DRB_SIMPLE_PERIMETER, STREAM_TABLES,
-    DRWI_SIMPLE_PERIMETER, DRWI_SIMPLE_PERIMETER_JSON,
-    NHD_REGION2_PERIMETER, CONUS_PERIMETER)
+    TILER_HOST, LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
+    PERIMETERS, STREAM_TABLES)
 from mmw.settings.gwlfe_settings import (
     GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP,
     CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,
@@ -110,6 +108,7 @@ POSTGIS_VERSION = tuple(
 CELERY_BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_IMPORTS = (
     # Submodule task is not always autodiscovered
@@ -956,10 +955,6 @@ GEOP = {
         }
     }
 }
-
-# TILER CONFIGURATION
-TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
-# END TILER CONFIGURATION
 
 # UI ("CLIENT APP") USER CONFIGURATION
 CLIENT_APP_USERNAME = 'mmw|client_app_user'
