@@ -359,7 +359,9 @@ var MapView = Marionette.ItemView.extend({
 
         var map = new L.Map(this.el, {
                 zoomControl: false,
-                attributionControl: options.showLayerAttribution
+                attributionControl: options.showLayerAttribution,
+                maxBounds: [[-90, -180], [90, 180]],
+                maxBoundsViscosity: 0.6,
             });
 
         this._leafletMap = map;
