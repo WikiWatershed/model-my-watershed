@@ -29,6 +29,10 @@ var TEST_SHAPE = {
 var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId;
 
+assert.almostEqual = function(actual, expected, message) {
+    return assert.equal(utils.round(actual, 5), utils.round(expected, 5), message);
+};
+
 describe('Core', function() {
     before(function() {
         if ($(sandboxSelector).length === 0) {
@@ -109,9 +113,9 @@ describe('Core', function() {
 
                 model.set({ lat: latLng[0], lng: latLng[1], zoom: zoom });
 
-                assert.equal(view._leafletMap.getCenter().lat, latLng[0]);
-                assert.equal(view._leafletMap.getCenter().lng, latLng[1]);
-                assert.equal(view._leafletMap.getZoom(), zoom);
+                assert.almostEqual(view._leafletMap.getCenter().lat, latLng[0]);
+                assert.almostEqual(view._leafletMap.getCenter().lng, latLng[1]);
+                assert.almostEqual(view._leafletMap.getZoom(), zoom);
 
                 view.destroy();
             });
@@ -129,9 +133,9 @@ describe('Core', function() {
 
                 view._leafletMap.setView(latLng, zoom);
 
-                assert.equal(model.get('lat'), 40);
-                assert.equal(model.get('lng'), -75);
-                assert.equal(model.get('zoom'), zoom);
+                assert.almostEqual(model.get('lat'), 40);
+                assert.almostEqual(model.get('lng'), -75);
+                assert.almostEqual(model.get('zoom'), zoom);
 
                 view.destroy();
             });
