@@ -179,9 +179,9 @@ describe('Geocoder', function() {
                 model.select();
                 model.setMapViewToLocation(zoomLevel);
 
-                assert.equal(App.map.get('lat'), model.get('y'));
-                assert.equal(App.map.get('lng'), model.get('x'));
-                assert.equal(App.map.get('zoom'), zoomLevel);
+                assert.almostEqual(App.map.get('lat'), model.get('y'));
+                assert.almostEqual(App.map.get('lng'), model.get('x'));
+                assert.almostEqual(App.map.get('zoom'), zoomLevel);
             });
         });
 

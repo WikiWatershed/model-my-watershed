@@ -35,21 +35,40 @@ def get_albers_crs_for_aoi(aoi):
     but this differs based on where you are in the globe. We use rough bounding
     boxes to see if the shape neatly fits within one of the continents. If not,
     we fall back to a global approximation.
+
+    See visualizations of the bounding boxes here: https://github.com/WikiWatershed/model-my-watershed/issues/3670#issuecomment-2891820165  # NOQA
     """
 
     if aoi.within(box(-170, 15, -50, 75)):  # North America
+        # EPSG:5070 NAD83 / Conus Albers
+        # https://epsg.io/5070
         return 'EPSG:5070'
     elif aoi.within(box(-10, 34, 40, 72)):  # Europe
+        # EPSG:3035 ETRS89-extended / LAEA Europe
+        # https://epsg.io/3035
         return 'EPSG:3035'
-    elif aoi.within(box(25, -10, 180, 60)):  # Asia
+    elif aoi.within(box(25, 25, 165, 85)):  # Northern Asia
+        # ESRI:102025 WGS 1984 Albers for Northern Asia
+        # https://epsg.io/102025
         return 'ESRI:102025'
+    elif aoi.within(box(25, -10, 165, 30)):  # Southern Asia
+        # ESRI:102028 WGS 1984 Albers for Southern Asia
+        # https://epsg.io/102028
+        return 'ESRI:102028'
     elif aoi.within(box(-20, -35, 55, 38)):  # Africa
+        # ESRI:102022 WGS 1984 Albers for Africa
+        # https://epsg.io/102022
         return 'ESRI:102022'
-    elif aoi.within(box(-90, -60, -30, 15)):  # South America
+    elif aoi.within(box(-95, -60, -25, 15)):  # South America
+        # ESRI:102033 SAD 1969 Albers South America
+        # https://epsg.io/102033
         return 'ESRI:102033'
     elif aoi.within(box(112, -45, 155, -10)):  # Australia
-        return 'ESRI:102034'
+        # EPSG:3577 GDA94 / Australian Albers
+        # https://epsg.io/3577
+        return 'EPSG:3577'
     else:  # Global
+        # https://epsg.io/54017
         return 'ESRI:54017'  # Behrmann Equal Area Cylindrical
 
 
