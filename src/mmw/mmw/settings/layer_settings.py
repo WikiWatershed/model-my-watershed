@@ -126,15 +126,23 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'Satellite with Roads',
-            'googleType': 'HYBRID',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
-            'maxZoom': 18,  # Max zoom changes based on location. Safe default
+            'display': 'Streets',
+            'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
+                   'World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            'attribution': 'Map data from <a href="http://www.arcgis.com/home/'
+                           'item.html?id=8bf7167d20924cbf8e25e7b11c7c502c" '
+                           'target="_blank">ESRI</a>',
+            'maxZoom': 19,
             'big_cz': True,
         },
         {
             'display': 'Terrain',
-            'googleType': 'TERRAIN',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
-            'maxZoom': 20,
+            'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
+                   'NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
+            'attribution': 'Map data from <a href="http://www.arcgis.com/home/'
+                           'item.html?id=d94dcdbe78e141c2b2d3a91d5ca8b9c9" '
+                           'target="_blank">ESRI</a>',
+            'maxZoom': 16,
             'big_cz': True,
         },
     ],
