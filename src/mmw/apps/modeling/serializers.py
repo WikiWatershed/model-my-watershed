@@ -127,7 +127,7 @@ class ProjectSerializer(serializers.ModelSerializer):
                   'scenarios', 'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
                   'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare',
-                  'in_drb', 'in_drwi', 'layer_overrides')
+                  'in_drb', 'in_drwi', 'in_pa', 'layer_overrides')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)

@@ -133,6 +133,7 @@ var ModelingController = {
                 scenarios: new models.ScenariosCollection(),
                 in_drb: utils.isInDrb(App.map.get('areaOfInterest')),
                 in_drwi: utils.isInDrwi(App.map.get('areaOfInterest')),
+                in_pa: utils.isInPA(App.map.get('areaOfInterest')),
             });
 
             App.currentProject = project;

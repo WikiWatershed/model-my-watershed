@@ -88,6 +88,11 @@ class Project(models.Model):
         return self.area_of_interest.within(
             settings.PERIMETERS['DRWI']['geom'])
 
+    @property
+    def in_pa(self):
+        return self.area_of_interest.within(
+            settings.PERIMETERS['PA_SIMPLE']['geom'])
+
 
 class WeatherType:
 

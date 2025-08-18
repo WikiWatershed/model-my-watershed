@@ -32,9 +32,9 @@
                         <option value="DEFAULT" {{ 'selected' if available_data == 'DEFAULT' }}>USEPA National Climate 1960&ndash;1990</option>
                     </optgroup>
                     {% for s in Simulations %}
-                        <optgroup label="{{ s.group }} {{ '(DRB Only)' if s.in_drb and not in_drb }} {{ '(DRWI Only)' if s.in_drwi and not in_drwi }}">
+                        <optgroup label="{{ s.group }} {{ '(DRB Only)' if s.in_drb and not in_drb }} {{ '(DRWI or PA Only)' if (s.in_drwi or s.in_pa) and not (in_drwi or in_pa) }}">
                             {% for i in s.items %}
-                                <option value="{{ i.name }}" {{ 'selected' if available_data == i.name }} {{ 'disabled' if (s.in_drb and not in_drb) or (s.in_drwi and not in_drwi) }}>{{ i.label }}</option>
+                                <option value="{{ i.name }}" {{ 'selected' if available_data == i.name }} {{ 'disabled' if (s.in_drb and not in_drb) or ((s.in_drwi or s.in_pa) and not (in_drwi or in_pa)) }}>{{ i.label }}</option>
                             {% endfor %}
                         </optgroup>
                     {% endfor %}

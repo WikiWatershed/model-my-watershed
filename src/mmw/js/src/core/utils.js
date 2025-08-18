@@ -614,6 +614,12 @@ var utils = {
         return this._containedIn(CONUS, geom);
     }),
 
+    isInPA: _.memoize(function(geom) {
+        var PA = settings.get('pa_simple_perimeter');
+
+        return this._containedIn(PA, geom);
+    }),
+
     // Calculates a range from 0 to the upper bound
     // of the order of magnitde of the value. Returns
     // an object containing min and max.
