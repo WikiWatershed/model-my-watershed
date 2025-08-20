@@ -141,9 +141,11 @@ def project_weather(request, proj_id, category):
         return Response({'errors': ['Invalid category specified.']},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    if category == 'NASA_NLDAS_2000_2019' and not project.in_drwi:
+    if category == 'NASA_NLDAS_2000_2019' \
+            and not (project.in_drwi or project.in_pa):
         return Response({'errors': ['Only supported within'
-                                    ' Delware River Watershed Initiative.']},
+                                    ' Delware River Watershed Initiative'
+                                    ' or the Commonwealth of Pennsylvania.']},
                         status=status.HTTP_400_BAD_REQUEST)
 
     if category in ['RCP45_2080_2099', 'RCP85_2080_2099'] \

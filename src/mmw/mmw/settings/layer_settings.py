@@ -48,6 +48,14 @@ PERIMETERS = {
         'json': None,
         'geom': None,
     },
+    # Buffered (3 mi) and simplified perimeter of PA state.
+    # Used for geo-constrained recent weather data.
+    'PA_SIMPLE': {
+        'label': 'Pennsylvania',
+        'file': 'data/pa_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
     # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
     # perimeter of the NHD Mid Atlantic Region (02)
     # Not a visible layer, but used for to detect if a point will work for RWD.
