@@ -334,3 +334,27 @@ SUBBASIN_RUN_REQUEST = Schema(
     },
     required=['job_uuid'],
 )
+
+POINTSOURCE_DATASOURCE = Parameter(
+    'datasource',
+    IN_PATH,
+    description='MMW retrieves pointsource data from one of'
+                ' three datasets depending on area of interest.'
+                ' A datasource can be overridden if available for'
+                ' a given area of interest, if specified in path.'
+                ' Must be one of: "{}"'.format(
+                    '", "'.join(settings.POINT_SOURCES.keys())),
+    type=TYPE_STRING,
+    required=True,
+)
+
+POINTSOURCE_ERROR_RESPONSE = Schema(
+    title='Point Source Analysis Error Response',
+    type=TYPE_OBJECT,
+    properties={
+        'errors': Schema(type=TYPE_ARRAY, items=Schema(type=TYPE_STRING),
+                         example=['Invalid datasource requested',
+                                  'The area of interest must be within the'
+                                  ' Delaware River Basin.'])
+    }
+)
