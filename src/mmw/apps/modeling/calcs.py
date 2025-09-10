@@ -293,10 +293,20 @@ def apply_gwlfe_modifications(gms, modifications):
     for mod in modifications:
         for key, value in mod.items():
             if '__' in key:
-                array_mods.append({key: value})
+                if key[:6] == 'Area__':
+                    # Extract area modifications early, since we need them to
+                    # derive other modifications
+                    gmskey, i = key.split('__')
+                    modified_gms[gmskey][int(i)] = value
+                else:
+                    array_mods.append({key: value})
             else:
                 key_mods.append({key: value})
 
+    # Apply modifications derived from area first, so they can be overridden
+    modified_gms = area_calculations(modified_gms['Area'], modified_gms)
+
+    # Now apply user specified modifications, which take final precedence
     for mod in array_mods:
         for key, value in mod.items():
             gmskey, i = key.split('__')
@@ -304,9 +314,6 @@ def apply_gwlfe_modifications(gms, modifications):
 
     for mod in key_mods:
         modified_gms.update(mod)
-
-    # Update keys that derive values from other keys
-    modified_gms = area_calculations(modified_gms['Area'], modified_gms)
 
     return modified_gms
 
