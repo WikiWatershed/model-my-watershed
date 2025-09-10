@@ -309,8 +309,8 @@ THIRD_PARTY_APPS = (
 # rest_framework
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
-        'sustained': '5000/day',
-        'burst': '30/min',
+        'sustained': '15000/day',
+        'burst': '90/min',
     },
 }
 
