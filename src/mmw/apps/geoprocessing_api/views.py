@@ -1053,7 +1053,8 @@ def start_analyze_animals(request, format=None):
 
 @swagger_auto_schema(method='post',
                      request_body=schemas.ANALYZE_REQUEST,
-                     responses={200: schemas.JOB_STARTED_RESPONSE})
+                     responses={200: schemas.JOB_STARTED_RESPONSE},
+                     operation_id='analyze_pointsource_create_deprecated')
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
