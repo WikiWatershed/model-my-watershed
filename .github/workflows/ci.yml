@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - hotfix/**
+      - release/**
+      - test/**
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # We use this virtual environment because it supports nested virtualization.
+    # See https://github.com/actions/virtual-environments/issues/433 for more
+    # information
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Cache Vagrant boxes
+        # Caches that are not accessed within the last week will be evicted
+        # (see https://github.com/actions/cache#cache-limits)
+        uses: actions/cache@v3
+        with:
+          path: ~/.vagrant.d/boxes
+          key: ${{ runner.os }}-vagrant-${{ hashFiles('Vagrantfile') }}
+          restore-keys: |
+            ${{ runner.os }}-vagrant-
+      
+      - name: Cache Vagrant VMs
+        # Caches that are not accessed within the last week will be evicted
+        # (see https://github.com/actions/cache#cache-limits)
+        uses: actions/cache@v3
+        with:
+          path: "~/VirtualBox VMs"
+          key: ${{ runner.os }}-vagrant-vms-${{ hashFiles('Vagrantfile') }}
+          restore-keys: |
+            ${{ runner.os }}-vagrant-vms-
+      
+      - name: Set up Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Set up Ansible
+        run: pip3 install ansible==2.9.*
+
+      - name: Set up Vagrant
+        run: |
+          vagrant plugin install vagrant-disksize
+          mkdir ~/.aws
+          sudo mkdir /etc/vbox
+          echo "
+            * 192.168.56.0/21
+            * 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
+      
+      - name: Vagrant base box update
+        run: vagrant box update
+      
+      - name: Vagrant up
+        run: ./scripts/vagrant-up.sh
+      
+      - name: Test
+        run: ./scripts/test.sh
+
+      - name: Halt the VM
+        run: vagrant halt
