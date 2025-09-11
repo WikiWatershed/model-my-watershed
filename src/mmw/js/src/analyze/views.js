@@ -20,6 +20,8 @@ var $ = require('jquery'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     dataCatalogViews = require('../data_catalog/views'),
+    gwlfeRunoffViews = require('../modeling/gwlfe/runoff/views'),
+    gwlfeQualityViews = require('../modeling/gwlfe/quality/views'),
     windowTmpl = require('./templates/window.html'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
@@ -48,6 +50,7 @@ var $ = require('jquery'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
     worksheetExportTmpl = require('./templates/worksheetExport.html'),
+    drainageAreaResultsTmpl = require('./templates/drainageAreaResults.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html');
 
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -1771,6 +1774,58 @@ var StreamResultView = AnalyzeResultView.extend({
     },
 });
 
+var DrainageAreaResultView = Marionette.LayoutView.extend({
+    template: drainageAreaResultsTmpl,
+
+    modelEvents: {
+        'change:activeVar': 'showTableView',
+    },
+
+    regions: {
+        descriptionRegion: '.desc-region',
+        varSelectorRegion: '.var-selector-region',
+        tableRegion: '.table-region',
+    },
+
+    initialize: function(options) {
+        // Wrap raw model in `result` to work with GWLF-E views
+        this.model = new Backbone.Model({ result: options.model.toJSON() });
+        
+        // Initialize to runoff / hydrology
+        this.model.set('activeVar', 'runoff');
+    },
+
+    onShow: function() {
+        this.descriptionRegion.show(new AnalyzeDescriptionView({
+            model: new Backbone.Model({
+                title: 'Drainage Area Analysis',
+            })
+        }));
+
+        this.varSelectorRegion.show(new VarSelectorView({
+            model: this.model,
+            keys: [
+                { name: 'runoff', label: 'Hydrology' },
+                { name: 'quality', label: 'Water Quality' },
+            ]
+        }));
+
+        this.showTableView();
+    },
+
+    showTableView: function() {
+        var activeVar = this.model.get('activeVar'),
+            tableViews = {
+                'runoff': gwlfeRunoffViews.TableView,
+                'quality': gwlfeQualityViews.TableView,
+            };
+
+        this.tableRegion.show(new tableViews[activeVar]({
+            model: this.model,
+        }));
+    }
+});
+
 var AnalyzeResultViews = {
     land_2019_2019: LandResultView,
     land_2019_2016: LandResultView,
@@ -1797,6 +1852,7 @@ var AnalyzeResultViews = {
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,
     drb_2100_land_corridors: LandResultView,
+    drainage_area: DrainageAreaResultView,
 };
 
 module.exports = {
