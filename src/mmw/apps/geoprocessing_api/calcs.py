@@ -187,25 +187,30 @@ def stream_data(results, geojson, datasource='nhdhr'):
     }
 
 
-def point_source_pollution(geojson):
+def point_source_pollution(geojson, datasource=None):
     """
     Given a GeoJSON shape, retrieve point source pollution data
-    from the `ms_pointsource` or `ms_pointsource_drb` table to display
-    in the Analyze tab.
+    from the `ms_pointsource`, `ms_pointsource_drb` or
+    `ms_pointsource_pa` table to display in the Analyze tab.
+    Use `ms_pointsource_drb` table if AoI within DRB, otherwise
+    retrieves from `ms_pointsource`. If valid datasource requested,
+    override source with respective table.
 
     Returns a dictionary to append to the outgoing JSON for analysis
     results.
     """
     geom = GEOSGeometry(geojson, srid=4326)
-    drb = geom.within(DRB)
-    table_name = get_point_source_table(drb)
+    table_name = get_point_source_table(geom.within(DRB), datasource)
+    # facilityname col exists for PA and DRB tables
+    has_facilityname = table_name.endswith('_pa') or table_name.endswith(
+        '_drb'
+    )
     sql = f'''
           SELECT city, state, npdes_id, mgd, kgn_yr, kgp_yr, latitude,
-                 longitude, {'facilityname' if drb else 'null'}
+                 longitude, {'facilityname' if has_facilityname else 'null'}
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
           '''
-
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
 
@@ -226,8 +231,10 @@ def point_source_pollution(geojson):
             point_source_results = []
 
     return {
-        'displayName': 'Point Source',
-        'name': 'pointsource',
+        'displayName': f'Point Source ({datasource.upper()})'
+        if datasource else 'Point Source',
+        'name': f'pointsource_{datasource}'
+        if datasource else 'pointsource',
         'categories': point_source_results
     }
 

@@ -1053,14 +1053,15 @@ def start_analyze_animals(request, format=None):
 
 @swagger_auto_schema(method='post',
                      request_body=schemas.ANALYZE_REQUEST,
-                     responses={200: schemas.JOB_STARTED_RESPONSE})
+                     responses={200: schemas.JOB_STARTED_RESPONSE},
+                     operation_id='analyze_pointsource_create_deprecated')
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_pointsource(request, format=None):
+def start_analyze_pointsource_deprecated(request, format=None):
     """
     Starts a job to analyze the discharge monitoring report annual
     averages for a given area.
@@ -1106,9 +1107,87 @@ def start_analyze_pointsource(request, format=None):
     area_of_interest, wkaoi, msg = _parse_analyze_input(request,
                                                         perimeter='CONUS')
 
+    msg.append(
+        'Using this endpoint without a datasource path parameter will be '
+        'deprecated in an upcoming release. Please switch to using this '
+        'endpoint with a valid datasource instead. '
+        'Valid datasource options must be one of: {}'.format(
+            ', '.join(settings.POINT_SOURCES.keys())),
+    )
+
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.POINTSOURCE_DATASOURCE],
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE,
+                                400: schemas.POINTSOURCE_ERROR_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_pointsource(request, datasource, format=None):
+    """
+    Starts a job to analyze the discharge monitoring report annual
+    averages for a given area & datasource.
+
+    Source EPA NPDES.
+
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers)  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Point Source {datasource option}",
+                "name": "pointsource_{datasource option}",
+                "categories": [
+                    {
+                        "city": "PHILADELPHIA",
+                        "kgp_yr": 16937.8,
+                        "mgd": 4.0835,
+                        "npdes_id": "0011533",
+                        "longitude": -75.209722,
+                        "state": "PA",
+                        "facilityname": "GIRARD POINT PROCESSING AREA",
+                        "latitude": 39.909722,
+                        "kgn_yr": 1160.76
+                    }
+                ], ...
+            }
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    if datasource not in settings.POINT_SOURCES:
+        raise ValidationError(
+            f'Invalid pointsource datasource: {datasource}.'
+            ' Must be one of: "{}".'.format(
+                '", "'.join(settings.POINT_SOURCES.keys())
+            )
+        )
+    perimeter = settings.POINT_SOURCES[datasource]['perimeter']
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request,
+                                                        perimeter=perimeter)
+
+    return start_celery_job([
+        tasks.analyze_pointsource.s(area_of_interest, datasource)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',

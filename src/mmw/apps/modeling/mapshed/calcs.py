@@ -363,8 +363,11 @@ def streams(geojson, datasource='nhdhr'):
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
 
 
-def get_point_source_table(drb):
-    return 'ms_pointsource' + ('_drb' if drb else '')
+def get_point_source_table(drb, datasource=None):
+    if datasource:
+        return settings.POINT_SOURCES[datasource]['table']
+    else:
+        return 'ms_pointsource' + ('_drb' if drb else '')
 
 
 def point_source_discharge(geom, area, drb=False):

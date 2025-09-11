@@ -724,6 +724,23 @@ STREAM_TABLES = {
     'tdxstreams': 'tdxstreams',
 }
 
+# List of valid point source tables
+# and their corresponding perimeters
+POINT_SOURCES = {
+    'conus': {
+        'table': 'ms_pointsource',
+        'perimeter': 'CONUS',
+    },
+    'drb': {
+        'table': 'ms_pointsource_drb',
+        'perimeter': 'DRB_SIMPLE',
+    },
+    'pa': {
+        'table': 'ms_pointsource_pa',
+        'perimeter': 'PA_SIMPLE',
+    }
+}
+
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
 VIZER_ROOT = '/observation/services/get_asset_info.php?'

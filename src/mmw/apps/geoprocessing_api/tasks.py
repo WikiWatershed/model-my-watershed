@@ -148,11 +148,11 @@ def analyze_animals(area_of_interest):
 
 
 @shared_task
-def analyze_pointsource(area_of_interest):
+def analyze_pointsource(area_of_interest, datasource=None):
     """
     Given an area of interest, returns point sources of pollution within it.
     """
-    return {'survey': point_source_pollution(area_of_interest)}
+    return {'survey': point_source_pollution(area_of_interest, datasource)}
 
 
 @shared_task
