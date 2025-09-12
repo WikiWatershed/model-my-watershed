@@ -1717,14 +1717,14 @@ var ClimateResultView = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
             ClimateChartView, title, source, helpText, associatedLayerCodes);
 
-        this.varSelectorRegion.show(new VarSelectorView({
-            model: this.model,
-            keys: [
+                    this.varSelectorRegion.show(new VarSelectorView({
+                model: this.model,
+                keys: [
                 { name: 'ppt', label: 'Mean Precipitation' },
                 { name: 'tmean', label: 'Mean Temperature' },
             ],
-        }));
-    }
+            }));
+            }
 });
 
 var StreamResultView = AnalyzeResultView.extend({
@@ -1788,6 +1788,8 @@ var AnalyzeResultViews = {
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
+    drb_pointsource: PointSourceResultView,
+    pa_pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
     climate: ClimateResultView,
     streams_nhd: StreamResultView,
