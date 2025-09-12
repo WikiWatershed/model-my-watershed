@@ -437,10 +437,29 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             displayName: "Pt Sources",
             tasks: [
                 {
-                    name: "pointsource",
+                    name: "drb_pointsource",
+                    displayName: "Delaware River Basin Point Source Data (NPDES)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/pointsource"
+                    taskName: "analyze/pointsource/drb",
+                    conusOnly: false
+                },
+                {
+                    name: "pa_pointsource",
+                    displayName: "Pennsylvania Point Source Data (NPDES)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/pointsource/pa",
+                    conusOnly: false,
+                    lazy: true
+                },
+                {
+                    name: "pointsource",
+                    displayName: "Continental US Point Source Data (NPDES)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/pointsource/conus",
+                    lazy: true
                 }
             ]
         },
@@ -472,15 +491,48 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             .value();
     }
 
+    // Remove PA only tasks first, if needed,
+    // as it is always a lazy-load option.
+    if (!utils.isInPA(aoi)) {
+        var isPATask = function(task) {
+            return task.name.startsWith('pa_');
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are PA only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isPATask);
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
     if (!utils.isInDrb(aoi)) {
         var isDrbTask = function(task) {
             return task.name.startsWith('drb');
+        };
+         var isPointSource = function(task) {
+            return task.name.endsWith('pointsource');
         };
 
         taskGroups = _(taskGroups)
             // Remove tasks that are DRB only
             .map(function(tg) {
                 tg.tasks = _.reject(tg.tasks, isDrbTask);
+
+                // DRB is the point source analysis default task.
+                // Mark new first task in point source task group
+                // as not lazy so the UI has something to show.
+                if(isPointSource){
+                    if (tg.tasks.length > 0) {
+                        tg.tasks[0].lazy = false;
+                    }
+                }
+
                 return tg;
             })
             // Remove task groups with no tasks
