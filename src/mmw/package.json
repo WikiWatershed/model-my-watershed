@@ -59,6 +59,7 @@
     "turf-destination": "1.2.1",
     "turf-erase": "1.3.2",
     "turf-intersect": "1.4.2",
+    "@turf/boolean-contains": "7.2.0",
     "turf-kinks": "3.0.12",
     "underscore": "1.8.3",
     "watchify": "3.11.1",

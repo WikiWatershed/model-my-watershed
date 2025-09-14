@@ -5,6 +5,7 @@ var L = require('leaflet'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
+    turfBooleanContains = require('@turf/boolean-contains'),
     settings = require('./settings'),
     units = require('./units');
 
@@ -594,6 +595,28 @@ var utils = {
         return intersection && coordCount === intersectionCount;
     },
 
+    _containedInStrict: function(perimeter, geom) {
+        if (geom.type !== 'MultiPolygon') {
+            return turfBooleanContains.booleanContains(perimeter, geom);
+        }
+
+        var aoi_polygons = geom.coordinates.map(function(coords) {
+            return {
+                type: 'Polygon',
+                coordinates: coords
+            };
+        });
+
+        return aoi_polygons.every(function(polygon) {
+            var feature = {
+                type: 'Feature',
+                geometry: polygon,
+                properties: {}
+            };
+            return turfBooleanContains.booleanContains(perimeter, feature);
+        });
+    },
+
     isInDrb: _.memoize(function(geom) {
         var DRB_SIMPLE_PERIMETER =
             _.find(settings.get('stream_layers'),
@@ -618,6 +641,14 @@ var utils = {
         var PA = settings.get('pa_simple_perimeter');
 
         return this._containedIn(PA, geom);
+    }),
+
+    isInPAStrict: _.memoize(function(geom) {
+        var PA = settings.get('pa_simple_perimeter');
+        // Utilizes _containedInStrict to maintain
+        // consistency with results from the backend's
+        // MultiPolygonGeoJsonField serializer perimeter check
+        return this._containedInStrict(PA, geom);
     }),
 
     // Calculates a range from 0 to the upper bound

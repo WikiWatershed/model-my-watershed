@@ -528,7 +528,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             .value();
     }
 
-    if (!utils.isInPA(aoi)) {
+    if (!utils.isInPAStrict(aoi)) {
         var isPATask = function(task) {
             return task.name.endsWith('_pa');
         };
