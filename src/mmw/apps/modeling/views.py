@@ -54,6 +54,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  sum_subbasin_stream_lengths,
                                  get_weather_modifications,
                                  get_weather_simulation_for_project,
+                                 get_available_simulations_for_aoi,
                                  )
 
 
@@ -70,8 +71,19 @@ def projects(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ProjectUpdateSerializer(data=request.data,
-                                             context={"request": request})
+        data = request.data.copy()
+
+        # Initialize weather simulations for GWLFE projects
+        if data.get('model_package') == Project.GWLFE and \
+           data.get('area_of_interest'):
+            try:
+                data['weather_simulations'] = \
+                    get_available_simulations_for_aoi(data['area_of_interest'])
+            except Exception:
+                data['weather_simulations'] = WeatherType.simulation_groups
+
+        serializer = ProjectUpdateSerializer(data=data,
+                                             context={'request': request})
         if serializer.is_valid():
             serializer.save()
 
