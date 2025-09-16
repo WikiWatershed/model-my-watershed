@@ -98,6 +98,11 @@ class Project(models.Model):
         return self.area_of_interest.within(
             settings.PERIMETERS['PA_SIMPLE']['geom'])
 
+    @property
+    def in_conus(self):
+        return self.area_of_interest.within(
+            settings.PERIMETERS['CONUS']['geom'])
+
 
 class WeatherType:
 
