@@ -280,6 +280,7 @@ function showWeatherDataModal(project, addModification) {
             in_drb: project.get('in_drb'),
             in_drwi: project.get('in_drwi'),
             in_pa: project.get('in_pa'),
+            weather_simulations: project.get('weather_simulations'),
             scenario_id: scenario.get('id'),
             weather_type: weather_type,
             available_data:

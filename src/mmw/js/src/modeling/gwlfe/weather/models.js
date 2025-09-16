@@ -11,6 +11,7 @@ var WindowModel = Backbone.Model.extend({
         in_drb: false,
         in_drwi: false,
         in_pa: false,
+        weather_simulations: [], // Avaiable simulation groups
         scenario_id: null, // Must be specified
         weather_type: WeatherType.DEFAULT,
         available_data: 'DEFAULT',
