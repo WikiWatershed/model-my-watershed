@@ -1214,6 +1214,7 @@ var ScenarioModel = Backbone.Model.extend({
         weather_type: constants.WeatherType.DEFAULT,
         weather_simulation: null,
         weather_custom: null,
+        pointsource_type: null,
     },
 
     initialize: function(attrs) {
