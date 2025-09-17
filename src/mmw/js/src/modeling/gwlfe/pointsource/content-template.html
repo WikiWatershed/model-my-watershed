@@ -1,0 +1,23 @@
+<div class="modal-content-container">
+    <div class="pointsource-content">
+        <label>
+            <h2 class="pointsource-content-title">
+                Point Source Data Types
+            </h2>
+        </label>
+        <p class="pointsource-content-description">
+            NPDES Datasource
+            <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate" target="_blank" rel="noreferrer noopener">See details.</a>
+        </p>
+
+        <ul id="pointsource-list" class="pointsource-options">
+            {% for p in PointSourceTypes %}
+                <li class="list-item" data-value="{{ p }}">
+                    <button type="button" class="btn btn-secondary">
+                        {{ p }}
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

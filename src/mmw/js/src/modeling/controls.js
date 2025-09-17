@@ -14,6 +14,7 @@ var $ = require('jquery'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     entryViews = require('./gwlfe/entry/views'),
     weatherViews = require('./gwlfe/weather/views'),
+    pointSourceViews = require('./gwlfe/pointsource/views'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
@@ -549,6 +550,42 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
     }
 });
 
+
+var GwlfePointSourceView = ModificationsView.extend({
+    initialize: function(options) {
+        var gis_data = App.currentProject.get('gis_data'),
+            currentScenario = App.currentProject.get('scenarios').getActiveScenario(),
+            mods = currentScenario && currentScenario.get('modifications');
+
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Point Source',
+            manualMode: true,
+            manualMod: false,
+            dataModel: gwlfeConfig.cleanDataModel(gis_data, mods),
+            errorMessages: null,
+            infoMessages: null
+        });
+    },
+
+    getControlName: function() {
+        return 'gwlfe_pointsource';
+    },
+
+    updateContent: function() {
+        var currentScenario = App.currentProject.get('scenarios').findWhere({ active: true });
+        if(currentScenario){
+            var pointSourceView = pointSourceViews.showPointSourceDataView(
+                App.currentProject,
+                currentScenario,
+                this.addModification
+            );
+            this.modContentRegion.show(pointSourceView);
+        }
+    }
+});
+
 var GwlfeSettingsView = ControlView.extend({
     template: settingsTmpl,
 
@@ -678,6 +715,8 @@ function getControlView(controlName) {
             return GwlfeLandCoverView;
         case 'gwlfe_conservation_practice':
             return GwlfeConservationPracticeView;
+        case 'gwlfe_pointsource':
+            return GwlfePointSourceView;
         case 'gwlfe_settings':
             return GwlfeSettingsView;
         case 'precipitation':
