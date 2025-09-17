@@ -245,14 +245,14 @@ module.exports = {
                 "error": "",
                 "finished": "2016-09-06T20:25:31.597Z",
                 "job_uuid": "5bb2a9b2-0864-4627-b383-1a43b8ad2e26",
-                "result": "[{\"displayName\": \"Point Source\", \"name\": \"pointsource\", \"categories\": [{\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0012572\", \"kgn_yr\": 258411.87, \"kgp_yr\": 22149.59, \"mgd\": 5.34}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0244171\", \"kgn_yr\": 1463.85, \"kgp_yr\": 125.47, \"mgd\": 0.03025}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0050202\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": null}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0051730\", \"kgn_yr\": 342.52, \"kgp_yr\": 52.96, \"mgd\": 0.0198}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0012629\", \"kgn_yr\": 5306.35, \"kgp_yr\": 23393.95, \"mgd\": 5.64}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"G050080\", \"kgn_yr\": 33.58, \"kgp_yr\": 2.88, \"mgd\": 0.000694}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"R900024\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": null}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0011428\", \"kgn_yr\": 3.39, \"kgp_yr\": 0.29, \"mgd\": 7e-05}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0011657\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": 41.06}]}]",
+                "result": "[{\"displayName\": \"Point Source (CONUS)\", \"name\": \"pointsource_conus\", \"categories\": [{\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0012572\", \"kgn_yr\": 258411.87, \"kgp_yr\": 22149.59, \"mgd\": 5.34}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0244171\", \"kgn_yr\": 1463.85, \"kgp_yr\": 125.47, \"mgd\": 0.03025}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0050202\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": null}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"0051730\", \"kgn_yr\": 342.52, \"kgp_yr\": 52.96, \"mgd\": 0.0198}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0012629\", \"kgn_yr\": 5306.35, \"kgp_yr\": 23393.95, \"mgd\": 5.64}, {\"city\": \"LOWER MERION1TWP\", \"npdes_id\": \"G050080\", \"kgn_yr\": 33.58, \"kgp_yr\": 2.88, \"mgd\": 0.000694}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"R900024\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": null}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0011428\", \"kgn_yr\": 3.39, \"kgp_yr\": 0.29, \"mgd\": 7e-05}, {\"city\": \"PHILADELPHIACITY\", \"npdes_id\": \"0011657\", \"kgn_yr\": null, \"kgp_yr\": null, \"mgd\": 41.06}]}]",
                 "started": "2016-09-06T20:25:31.450Z",
                 "status": "complete"
             },
             result: [
                 {
-                    "displayName": "Point Source",
-                    "name": "pointsource",
+                    "displayName": "Point Source (CONUS)",
+                    "name": "pointsource_conus",
                     "categories": [
                         {
                             "city": "LOWER MERION1TWP",
@@ -996,7 +996,7 @@ module.exports = {
         "finished": "2020-01-17T21:19:30.760224Z",
         "job": "9249e1f2-818f-44c5-9794-aeeeb1f52ea0",
         "job_uuid": "9249e1f2-818f-44c5-9794-aeeeb1f52ea0",
-        "name": "pointsource",
+        "name": "pointsource_conus",
         "pollInterval": 1000,
         "result": {
           "survey": {
