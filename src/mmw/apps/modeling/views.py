@@ -54,6 +54,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  sum_subbasin_stream_lengths,
                                  get_weather_modifications,
                                  get_weather_simulation_for_project,
+                                 get_available_simulations_for_aoi,
                                  )
 
 
@@ -70,8 +71,19 @@ def projects(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ProjectUpdateSerializer(data=request.data,
-                                             context={"request": request})
+        data = request.data.copy()
+
+        # Initialize weather simulations for GWLFE projects
+        if data.get('model_package') == Project.GWLFE and \
+           data.get('area_of_interest'):
+            try:
+                data['weather_simulations'] = \
+                    get_available_simulations_for_aoi(data['area_of_interest'])
+            except Exception:
+                data['weather_simulations'] = WeatherType.simulation_groups
+
+        serializer = ProjectUpdateSerializer(data=data,
+                                             context={'request': request})
         if serializer.is_valid():
             serializer.save()
 
@@ -143,28 +155,20 @@ def project_weather(request, proj_id, category):
         return Response({'errors': ['Invalid category specified.']},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    if category == 'NASA_NLDAS_2000_2019' \
-            and not (project.in_drwi or project.in_pa):
-        return Response({'errors': ['Only supported within'
-                                    ' Delware River Watershed Initiative'
-                                    ' or the Commonwealth of Pennsylvania.']},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    if category in ['RCP45_2080_2099', 'RCP85_2080_2099'] \
-            and not project.in_drb:
-        return Response({'errors': ['Only supported within'
-                                    ' Delware River Basin.']},
-                        status=status.HTTP_400_BAD_REQUEST)
-
     # Get weather simulation data for this project
     mods, errs = get_weather_simulation_for_project(project, category)
 
-    # Report errors as server side, since they are fault with our
-    # built-in data
     if errs:
+        err_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        if '403' in "".join(errs):
+            # The HEAD request to AWS responds with 403 when requesting
+            # a weather station that does not exist
+            err_status = status.HTTP_400_BAD_REQUEST
+
         rollbar.report_message(f'Weather Data Errors: {errs}', 'error')
         return Response({'errors': errs},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        status=err_status)
 
     # Return response, and cache it for a long time, because it is constant
     # for a project and category

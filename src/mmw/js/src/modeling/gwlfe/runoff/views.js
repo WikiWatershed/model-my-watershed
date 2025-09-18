@@ -3,11 +3,11 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    App = require('../../../app.js'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
-    modelingConstants = require('../../constants'),
     modelingUtils = require('../../utils'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
@@ -54,10 +54,11 @@ var ResultView = Marionette.LayoutView.extend({
         var scheme = settings.get('unit_scheme'),
             lengthUnit = coreUnits[scheme].LENGTH_S.name,
             gis_data = this.scenario.getModifiedGwlfeGisData(),
+            weather_simulations = App.currentProject.get('weather_simulations'),
             weather_type = this.scenario.get('weather_type'),
             weather_simulation = this.scenario.get('weather_simulation'),
             weather_simulation_label = weather_simulation &&
-                _.chain(modelingConstants.Simulations)
+                _.chain(weather_simulations)
                     .flatMap(function(g) { return g.items; })
                     .find(function(i) { return i.name === weather_simulation; })
                     .value()

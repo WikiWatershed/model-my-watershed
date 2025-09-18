@@ -16,6 +16,7 @@ from apps.modeling.mapshed.calcs import (area_calculations,
                                          nearest_weather_stations,
                                          average_weather_data
                                          )
+from apps.modeling.models import WeatherType
 
 
 NODATA = -999.0
@@ -189,6 +190,41 @@ def get_weather_simulation_for_project(project, category):
         'Prec': average_weather_data([d['Prec'] for d in data]),
         'Temp': average_weather_data([d['Temp'] for d in data]),
     }, errs
+
+
+def get_available_simulations_for_aoi(area_of_interest):
+    """
+    Get dict of eligible weather categories for an area of interest.
+
+    Current categories are NASA_NLDAS_2000_2019, RCP45_2080_2099 and
+    RCP85_2080_2099, and only support shapes within DRB and PA. We check
+    if the two nearest weather stations for the given area of interest are
+    available in each of these, and if so, enable them.
+    """
+
+    wss = nearest_weather_stations([(None, None, area_of_interest)])
+    available_sims = WeatherType.simulations.copy()
+    groups = WeatherType.simulation_groups.copy()
+
+    # Remove any simulation that does not have values for selected stations
+    for sim in WeatherType.simulations:
+        if sim in available_sims:
+            for ws in wss:
+                url = settings.WEATHER_DATA_BUCKET_URL.format(
+                          category=sim, station=ws.station)
+                res = requests.head(url)
+                if not res.ok:
+                    available_sims.remove(sim)
+                    break
+
+    for group in groups:
+        if group['group'] == 'Recent Weather':
+            group['disabled'] = 'NASA_NLDAS_2000_2019' not in available_sims
+        elif group['group'] == 'Future Weather Simulations':
+            group['disabled'] = ('RCP45_2080_2099' not in available_sims or
+                                 'RCP85_2080_2099' not in available_sims)
+
+    return groups
 
 
 def wkaoi_from_huc(huc):
