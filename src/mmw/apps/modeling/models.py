@@ -6,11 +6,6 @@ from django.contrib.auth.models import User
 
 from apps.core.models import Job
 
-POINTSOURCE_CHOICES = [
-    (key, details["description"])
-    for (key, details) in settings.POINT_SOURCES.items()
-]
-
 
 def project_filename(project, filename):
     return f'project_{project.id}/{filename}'
@@ -232,14 +227,6 @@ class Scenario(models.Model):
         null=True,
         upload_to=scenario_filename,
         help_text='Reference path of the custom weather file.')
-    pointsource_type = models.CharField(
-        choices=POINTSOURCE_CHOICES,
-        max_length=255,
-        help_text='The source of point source data for this scenario. '
-                  'Only applies to GWLF-E scenarios.',
-        null=True,
-        default=None,
-    )
 
     def __unicode__(self):
         return self.name
