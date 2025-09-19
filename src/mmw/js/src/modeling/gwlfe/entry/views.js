@@ -528,11 +528,40 @@ var SectionsView = Marionette.CollectionView.extend({
     childView: SectionView,
 });
 
-function showSettingsModal(title, dataModel, modifications, addModification) {
+function showSettingsModal(project, title, dataModel, modifications, addModification) {
     var scheme = settings.get('unit_scheme'),
         massPerTimeUnit = coreUnits[scheme].MASSPERTIME.name,
         volumetricFlowRateUnit = coreUnits[scheme].VOLUMETRICFLOWRATE.name,
         concentrationUnit = coreUnits[scheme].CONCENTRATION.name,
+        wasteWaterMod = modifications.findWhere({ modKey: 'entry_waste_water' }),
+        wasteWaterPreset = wasteWaterMod && wasteWaterMod.get('userInput').entry_waste_water_preset,
+        getPointSourcePresets = function() {
+            if (project.isNew()) return null;
+            if (!(project.get('in_drb') || project.get('in_pa'))) return null;
+
+            var presets = [{
+                name: 'conus',
+                label: 'Continental United States',
+                default: !project.get('in_drb'),
+            }];
+
+            if (project.get('in_pa')) {
+                presets.push({
+                    name: 'pa',
+                    label: 'Pennsylvania',
+                });
+            }
+
+            if (project.get('in_drb')) {
+                presets.push({
+                    name: 'drb',
+                    label: 'Delaware River Basin',
+                    default: true,
+                });
+            }
+
+            return new models.EntryPresetCollection(presets);
+        },
         tabs = new models.EntryTabCollection([
             {
                 name: 'efficiencies',
@@ -829,6 +858,11 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                 sections: new models.EntrySectionCollection([
                     {
                         title: 'Wastewater Treatment Plants',
+                        presets: getPointSourcePresets(),
+                        presetSelected: wasteWaterPreset,
+                        presetUrl: function(preset) {
+                            return '/mmw/modeling/projects/' + project.get('id') + '/pointsource/' + preset;
+                        },
                         fields: models.makeFieldCollection('waste_water', dataModel, modifications, [
                             {
                                 name: 'PointNitr',
