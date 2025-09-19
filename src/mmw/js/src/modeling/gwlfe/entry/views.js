@@ -490,6 +490,15 @@ var SectionView = Marionette.LayoutView.extend({
         fieldsRegion: '.rows',
     },
 
+    templateHelpers: function() {
+        var presets = this.model.get('presets'),
+            presetJson = presets && presets.toJSON();
+
+        return {
+            presets: presetJson,
+        };
+    },
+
     onShow: function() {
         this.fieldsRegion.show(new FieldsView({
             collection: this.model.get('fields'),

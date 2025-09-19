@@ -1,2 +1,20 @@
+{% if presets %}
+<div class="col-sm-7">
+    <h3>{{ title }}</h3>
+</div>
+<div class="col-sm-5" style="padding-bottom: 0.5rem">
+    <select class="form-control" style="border-radius: 0">
+        {% for p in presets %}
+        <option
+            value="{{ p.name }}"
+            {{ 'selected' if p.name == presetSelected or (not presetSelected and p.default) }}
+        >
+            {{ p.label }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+{% else %}
 <h3>{{ title }}</h3>
+{% endif %}
 <div class="rows"></div>

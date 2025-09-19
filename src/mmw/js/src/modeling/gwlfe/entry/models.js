@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('lodash'),
+var $ = require('jquery'),
+    _ = require('lodash'),
     Backbone = require('../../../../shim/backbone'),
     GwlfeModificationModel = require('../../models').GwlfeModificationModel;
 
@@ -23,6 +24,7 @@ var EntryFieldModel = Backbone.Model.extend({
     },
 
     initialize: function(attrs, dataModel) {
+        this.getAutoValue = attrs.calculator.getAutoValue;
         this.toOutput = attrs.calculator.toOutput;
         this.set('autoValue',
             attrs.calculator.getAutoValue(attrs.name, dataModel));
@@ -37,10 +39,50 @@ var EntryFieldCollection = Backbone.Collection.extend({
     model: EntryFieldModel,
 });
 
+var EntryPresetModel = Backbone.Model.extend({
+    defaults: {
+        label: '',
+        name: '',
+        default: false,
+        selected: false,
+    },
+});
+
+var EntryPresetCollection = Backbone.Collection.extend({
+    model: EntryPresetModel,
+});
+
 var EntrySectionModel = Backbone.Model.extend({
     defaults: {
         title: '',
+        presets: null, // EntryPresetCollection
+        presetSelected: null,
         fields: null,  // EntryFieldCollection
+    },
+
+    initialize: function(attrs) {
+        // Optional, only provided with presets
+        this.presetUrl = attrs.presetUrl;
+    },
+
+    fetchPresetValues: function(target) {
+        var self = this,
+            url = this.presetUrl(target),
+            preset = this.get('presets').findWhere({ selected: true });
+
+        return $.get(url).then(function(data) {
+            var dataModel = data.output;
+
+            self.get('fields').forEach(function(field) {
+                var name = field.get('name'),
+                    getAutoValue = field.getAutoValue,
+                    userValue = preset.get('default')
+                                ? null
+                                : getAutoValue(name, dataModel);
+
+                field.set('userValue', userValue);
+            });
+        });
     }
 });
 
@@ -171,6 +213,8 @@ module.exports = {
     ENTRY_FIELD_TYPES: ENTRY_FIELD_TYPES,
     EntryFieldModel: EntryFieldModel,
     EntryFieldCollection: EntryFieldCollection,
+    EntryPresetModel: EntryPresetModel,
+    EntryPresetCollection: EntryPresetCollection,
     EntrySectionModel: EntrySectionModel,
     EntrySectionCollection: EntrySectionCollection,
     EntryTabCollection: EntryTabCollection,
