@@ -99,7 +99,8 @@ var EntryTabModel = Backbone.Model.extend({
     },
 
     getOutput: function() {
-        var output = {},
+        var tabName = this.get('name'),
+            output = {},
             userInput = {};
 
         this.get('sections').forEach(function(section) {
@@ -117,10 +118,23 @@ var EntryTabModel = Backbone.Model.extend({
                     userInput[name] = userValue;
                 }
             });
+            
+            var presets = section.get('presets');
+            presets && presets.forEach(function(preset) {
+                var name = preset.get('name'),
+                    dflt = preset.get('default'),
+                    selected = preset.get('selected'),
+                    key = 'entry_' + tabName + '_preset';
+                
+                if (selected && !dflt) {
+                    output[key] = name;
+                    userInput[key] = name;
+                }
+            });
         });
 
         return new GwlfeModificationModel({
-            modKey: 'entry_' + this.get('name'),
+            modKey: 'entry_' + tabName,
             output: output,
             userInput: userInput,
         });

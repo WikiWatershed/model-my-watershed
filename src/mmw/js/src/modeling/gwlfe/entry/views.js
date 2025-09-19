@@ -486,6 +486,10 @@ var FieldsView = Marionette.CollectionView.extend({
 var SectionView = Marionette.LayoutView.extend({
     template: sectionTmpl,
 
+    events: {
+        'change select.entry-preset': 'onPresetChange',
+    },
+
     regions: {
         fieldsRegion: '.rows',
     },
@@ -503,6 +507,18 @@ var SectionView = Marionette.LayoutView.extend({
         this.fieldsRegion.show(new FieldsView({
             collection: this.model.get('fields'),
         }));
+    },
+
+    onPresetChange: function(e) {
+        var self = this;
+
+        this.model.get('presets').forEach(function(preset) {
+            preset.set('selected', preset.get('name') === e.target.value);
+        });
+
+        this.model.fetchPresetValues(e.target.value).then(function() {
+            self.fieldsRegion.currentView.render();
+        });
     }
 });
 
