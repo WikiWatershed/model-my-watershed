@@ -928,7 +928,35 @@ class CustomWeatherDataTestCase(TestCase):
                     [-75.16030455947867, 39.9659391727703],
                     [-75.16030455947867, 39.95694877899765]]]]},
             "name": "My Project",
-            "model_package": "gwlfe"
+            "model_package": "gwlfe",
+            "weather_simulations": [
+                {
+                    "group": "Recent Weather",
+                    "items": [
+                        {
+                            "name": "NASA_NLDAS_2000_2019",
+                            "label": "NASA NLDAS 2000-2019"
+                        }
+                    ],
+                    "eligible_area": "DRWI or PA",
+                    "disabled": False,
+                },
+                {
+                    "group": "Future Weather Simulations",
+                    "items": [
+                        {
+                            "name": "RCP45_2080_2099",
+                            "label": "RCP 4.5 2080-2099"
+                        },
+                        {
+                            "name": "RCP85_2080_2099",
+                            "label": "RCP 8.5 2080-2099"
+                        },
+                    ],
+                    "eligible_area": "DRB",
+                    "disabled": False,
+                },
+            ]
         }
 
         self.scenario = {
