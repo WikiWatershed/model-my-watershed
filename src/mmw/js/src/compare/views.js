@@ -532,6 +532,10 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                             name = 'Land Cover Preset';
                             value = null;
                             input = task && task.get('displayName');
+                        } else if (key === 'entry_waste_water_preset') {
+                            name = 'Waste Water Preset';
+                            value = value.toString().toUpperCase();
+                            input = null;
                         } else if (modKey.startsWith('entry_')) {
                             var u = coreUnits.get(unit || 'NONE', value);
                             name = input;
