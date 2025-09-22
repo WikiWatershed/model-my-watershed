@@ -93,6 +93,11 @@ var units = {
             factor: 1,
             offset: 0
         },
+        NONE: {
+            name: '',
+            factor: 1,
+            offset: 0
+        },
     },
     METRIC: {
         AREA_XL: {
@@ -177,6 +182,11 @@ var units = {
         },
         PERCENT: {
             name: '%',
+            factor: 1,
+            offset: 0
+        },
+        NONE: {
+            name: '',
             factor: 1,
             offset: 0
         },
