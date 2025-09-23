@@ -730,17 +730,17 @@ POINT_SOURCES = {
     'conus': {
         'table': 'ms_pointsource',
         'perimeter': 'CONUS',
-        'description': 'Continental US Point Source Data (NPDES)'
+        'description': 'National EPA Data (NPDES)'
     },
     'drb': {
         'table': 'ms_pointsource_drb',
         'perimeter': 'DRB_SIMPLE',
-        'description': 'Delaware River Basin Point Source Data (NPDES)'
+        'description': 'Updated Data from DRBC'
     },
     'pa': {
         'table': 'ms_pointsource_pa',
         'perimeter': 'PA_SIMPLE',
-        'description': 'Pennsylvania Point Source Data (NPDES)'
+        'description': 'Updated PA Data (PADEP)'
     }
 }
 

@@ -541,21 +541,21 @@ function showSettingsModal(project, title, dataModel, modifications, addModifica
 
             var presets = [{
                 name: 'conus',
-                label: 'Continental United States',
+                label: 'National EPA Data (NPDES)',
                 default: !project.get('in_drb'),
             }];
 
             if (project.get('in_pa')) {
                 presets.push({
                     name: 'pa',
-                    label: 'Pennsylvania',
+                    label: 'Updated PA Data (PADEP)',
                 });
             }
 
             if (project.get('in_drb')) {
                 presets.push({
                     name: 'drb',
-                    label: 'Delaware River Basin',
+                    label: 'Updated Data from DRBC',
                     default: true,
                 });
             }
