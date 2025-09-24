@@ -74,6 +74,9 @@ class Project(models.Model):
     layer_overrides = JSONField(
         default=dict,
         help_text='JSON object of layers to override defaults with')
+    weather_simulations = JSONField(
+        default=list,
+        help_text='JSON array of simulation groups available for project')
 
     def __unicode__(self):
         return self.name
@@ -87,6 +90,16 @@ class Project(models.Model):
     def in_drwi(self):
         return self.area_of_interest.within(
             settings.PERIMETERS['DRWI']['geom'])
+
+    @property
+    def in_pa(self):
+        return self.area_of_interest.within(
+            settings.PERIMETERS['PA_SIMPLE']['geom'])
+
+    @property
+    def in_conus(self):
+        return self.area_of_interest.within(
+            settings.PERIMETERS['CONUS']['geom'])
 
 
 class WeatherType:
@@ -109,6 +122,35 @@ class WeatherType:
         'NASA_NLDAS_2000_2019',
         'RCP45_2080_2099',
         'RCP85_2080_2099',
+    ]
+
+    simulation_groups = [
+        {
+            'group': 'Recent Weather',
+            'items': [
+                {
+                    'name': 'NASA_NLDAS_2000_2019',
+                    'label': 'NASA NLDAS 2000-2019',
+                },
+            ],
+            'eligible_area': 'DRWI or PA',
+            'disabled': True,
+        },
+        {
+            'group': 'Future Weather Simulations',
+            'items': [
+                {
+                    'name': 'RCP45_2080_2099',
+                    'label': 'RCP 4.5 2080-2099',
+                },
+                {
+                    'name': 'RCP85_2080_2099',
+                    'label': 'RCP 8.5 2080-2099',
+                },
+            ],
+            'eligible_area': 'DRB',
+            'disabled': True,
+        },
     ]
 
     # Custom, user uploaded, may be more accurate, more recent, or more

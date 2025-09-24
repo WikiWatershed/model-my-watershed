@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     App = require('../../../app'),
     resultTmpl = require('./templates/result.html'),
@@ -37,13 +37,20 @@ var ResultView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var gis_data = this.scenario.getModifiedGwlfeGisData(),
+            weather_simulations = App.currentProject.get('weather_simulations'),
             weather_type = this.scenario.get('weather_type'),
             weather_simulation = this.scenario.get('weather_simulation'),
+            weather_simulation_label = weather_simulation &&
+                _.chain(weather_simulations)
+                    .flatMap(function(g) { return g.items; })
+                    .find(function(i) { return i.name === weather_simulation; })
+                    .value()
+                    .label,
             weather_custom = this.scenario.get('weather_custom');
 
         return {
             weather_type: weather_type,
-            weather_simulation: weather_simulation,
+            weather_simulation: weather_simulation_label,
             weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
             showSubbasinModelingButton: coreUtils

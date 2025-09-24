@@ -36,6 +36,7 @@ module.exports = {
                 },
             ],
             in_drwi: true,
+            in_pa: true
         },
         {
             group: 'Future Weather Simulations',

@@ -48,6 +48,14 @@ PERIMETERS = {
         'json': None,
         'geom': None,
     },
+    # Buffered (3 mi) and simplified perimeter of PA state.
+    # Used for geo-constrained recent weather data.
+    'PA_SIMPLE': {
+        'label': 'Pennsylvania',
+        'file': 'data/pa_simple_perimeter.json',
+        'json': None,
+        'geom': None,
+    },
     # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
     # perimeter of the NHD Mid Atlantic Region (02)
     # Not a visible layer, but used for to detect if a point will work for RWD.
@@ -714,6 +722,26 @@ STREAM_TABLES = {
     'nhdhr': 'nhdflowlinehr',
     'drb': 'drb_streams_50',
     'tdxstreams': 'tdxstreams',
+}
+
+# List of valid point source tables
+# and their corresponding perimeters
+POINT_SOURCES = {
+    'conus': {
+        'table': 'ms_pointsource',
+        'perimeter': 'CONUS',
+        'description': 'National EPA Data (NPDES)'
+    },
+    'drb': {
+        'table': 'ms_pointsource_drb',
+        'perimeter': 'DRB_SIMPLE',
+        'description': 'Updated Data from DRBC'
+    },
+    'pa': {
+        'table': 'ms_pointsource_pa',
+        'perimeter': 'PA_SIMPLE',
+        'description': 'Updated PA Data (PADEP)'
+    }
 }
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app

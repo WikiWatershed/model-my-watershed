@@ -28,6 +28,9 @@ var n23Name = 'n23',
     QretentionName = 'Qretention',
     PctAreaInfilName = 'PctAreaInfil',
     UrbAreaTotalName = 'UrbAreaTotal',
+    PointNitrName = 'PointNitr',
+    PointPhosName = 'PointPhos',
+    PointFlowName = 'PointFlow',
     lengthToModifyName = 'lengthToModify',
     lengthToModifyInAgName = 'lengthToModifyInAg',
     areaToModifyName = 'areaToModify',
@@ -73,7 +76,10 @@ var displayUnits = fromPairs([
     [n42Name, 'LENGTH_XL_FROM_KM'],
     [n42bName, 'LENGTH_XL_FROM_KM'],
     [UrbAreaTotalName, 'AREA_L_FROM_HA'],
-    [UrbLengthName, 'LENGTH_XL_FROM_KM']
+    [UrbLengthName, 'LENGTH_XL_FROM_KM'],
+    [PointNitrName, 'MASSPERTIME'],
+    [PointPhosName, 'MASSPERTIME'],
+    [PointFlowName, 'VOLUMETRICFLOWRATE'],
 ]);
 
 var displayNames = fromPairs([
@@ -86,7 +92,10 @@ var displayNames = fromPairs([
     [n42Name, 'Length of streams in ag areas (LENGTHUNITNAME)'],
     [n42bName, 'Length of streams in watershed (LENGTHUNITNAME)'],
     [UrbAreaTotalName, 'Total urban area (AREAUNITNAME)'],
-    [UrbLengthName, 'Length of streams in non-ag areas (LENGTHUNITNAME)']
+    [UrbLengthName, 'Length of streams in non-ag areas (LENGTHUNITNAME)'],
+    [PointNitrName, 'Annual TN Load'],
+    [PointPhosName, 'Annual TP Load'],
+    [PointFlowName, 'Daily Effluent Discharge'],
 ]);
 
 var shortDisplayNames = fromPairs([
@@ -94,7 +103,10 @@ var shortDisplayNames = fromPairs([
     [n42Name, 'length of streams in ag areas'],
     [n42bName, 'length of streams in watershed'],
     [UrbAreaTotalName, 'total urban area'],
-    [UrbLengthName, 'length of streams in non-ag areas']
+    [UrbLengthName, 'length of streams in non-ag areas'],
+    [PointNitrName, 'annual TN load'],
+    [PointPhosName, 'annual TP load'],
+    [PointFlowName, 'daily effluent discharge'],
 ]);
 
 function cleanDataModel(dataModel, mods) {

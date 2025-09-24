@@ -341,6 +341,7 @@ def get_client_settings(request):
             'nhd_perimeter': settings.PERIMETERS['NHD']['json'],
             'conus_perimeter': settings.PERIMETERS['CONUS']['json'],
             'drwi_simple_perimeter': settings.PERIMETERS['DRWI']['json'],
+            'pa_simple_perimeter': settings.PERIMETERS['PA_SIMPLE']['json'],
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,

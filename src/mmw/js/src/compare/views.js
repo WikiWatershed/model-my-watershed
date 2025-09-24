@@ -532,6 +532,15 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                             name = 'Land Cover Preset';
                             value = null;
                             input = task && task.get('displayName');
+                        } else if (key === 'entry_waste_water_preset') {
+                            name = 'Waste Water Preset';
+                            value = value.toString().toUpperCase();
+                            input = null;
+                        } else if (modKey.startsWith('entry_')) {
+                            var u = coreUnits.get(unit || 'NONE', value);
+                            name = input;
+                            value = u.value.toFixed(3);
+                            input = u.unit;
                         } else {
                             value = coreUnits.get(unit, value).value.toFixed(3);
                             input = input.replace('AREAUNITNAME', areaUnit);
@@ -557,7 +566,7 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
             }),
             gwlfeSettings: gwlfeModifications.filter(function(m) {
                 return m.modKey.startsWith('entry_') && !m.modKey.startsWith('entry_landcover');
-            }).map(function(m) { m.name = m.name.substring(6); return m; }),
+            }),
             conservationPractices: this.model.filter(function(modification) {
                 return modification.get('name') === 'conservation_practice';
             }),

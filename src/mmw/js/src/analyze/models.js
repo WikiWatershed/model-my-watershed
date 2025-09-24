@@ -437,10 +437,30 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             displayName: "Pt Sources",
             tasks: [
                 {
-                    name: "pointsource",
+                    name: "pointsource_drb",
+                    displayName: "Updated Data from DRBC",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/pointsource"
+                    taskName: "analyze/pointsource/drb",
+                    conusOnly: true
+                },
+                {
+                    name: "pointsource_pa",
+                    displayName: "Updated PA Data (PADEP)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/pointsource/pa",
+                    conusOnly: true,
+                    lazy: true
+                },
+                {
+                    name: "pointsource_conus",
+                    displayName: "National EPA Data (NPDES)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/pointsource/conus",
+                    conusOnly: true,
+                    lazy: true
                 }
             ]
         },
@@ -474,13 +494,49 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
 
     if (!utils.isInDrb(aoi)) {
         var isDrbTask = function(task) {
-            return task.name.startsWith('drb');
+            return task.name.startsWith('drb') || task.name.endsWith('_drb');
+        };
+        var isPointSource = function(task) {
+            return task.name.startsWith('pointsource');
         };
 
         taskGroups = _(taskGroups)
             // Remove tasks that are DRB only
             .map(function(tg) {
                 tg.tasks = _.reject(tg.tasks, isDrbTask);
+                return tg;
+            })
+            // PA pointsource always lazy-loaded.
+            // Move PA pointsource task to last in list
+            // and mark first non-PA task as not lazy
+            // so UI has something to show outside DRB.
+            .map(function(tg) {
+                if(isPointSource){
+                    if (tg.tasks.length > 0) {
+                        tg.tasks = _.sortBy(tg.tasks, function(task) {
+                            return task.name.endsWith('_pa');
+                        });
+                        tg.tasks[0].lazy = false;
+                    }
+                }
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
+    if (!utils.isInPAStrict(aoi)) {
+        var isPATask = function(task) {
+            return task.name.endsWith('_pa');
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are PA only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isPATask);
                 return tg;
             })
             // Remove task groups with no tasks

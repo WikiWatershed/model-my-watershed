@@ -347,6 +347,7 @@ var ProjectModel = Backbone.Model.extend({
         is_exporting: false,               // Is the project currently exporting?
         hydroshare_errors: [],             // List of errors from connecting to hydroshare
         layer_overrides: {},               // Keys of tokens mapped to overriding layer names, e.g. {"__LAND__": "nlcd-2011-30m-epsg5070-512-int8"}
+        weather_simulations: [],           // (GWLF-E) List of weather simulation groups for the project
     },
 
     initialize: function() {

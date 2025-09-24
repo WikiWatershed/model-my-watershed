@@ -145,6 +145,7 @@ JS_DEPS=(backbone
          turf-erase
          turf-intersect
          turf-kinks
+         @turf/boolean-contains
          underscore
          wellknown)
 

@@ -56,9 +56,10 @@ describe('Analyze', function() {
 
     describe('Views', function() {
         describe('AnalysisResultView', function() {
-            _.forEach(['soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
+            _.forEach(['soil', 'animals', 'catchment_water_quality'], testAnalysisType);
             testAnalysisType('land_2011_2011', 'land');
             testAnalysisType('protected_lands', 'land');
+            testAnalysisType('pointsource_conus', 'pointsource');
         });
     });
 });
@@ -194,7 +195,7 @@ var dataFormatters = {
     protected_lands: protectedLandsTableFormatter,
     soil: soilTableFormatter,
     animals: animalTableFormatter,
-    pointsource: pointsourceTableFormatter,
+    pointsource_conus: pointsourceTableFormatter,
     catchment_water_quality: catchmentWaterQualityTableFormatter,
 };
 
@@ -203,7 +204,7 @@ var tableHeaders = {
     protected_lands: ['Type', 'Area (km²)', 'Coverage (%)'],
     soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
-    pointsource: ['NPDES Code', 'City', 'Discharge (m³/d)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
+    pointsource_conus: ['NPDES Code', 'City', 'Discharge (m³/d)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
     catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',
         'Total SS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
 };

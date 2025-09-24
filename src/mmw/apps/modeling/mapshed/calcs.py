@@ -363,11 +363,14 @@ def streams(geojson, datasource='nhdhr'):
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
 
 
-def get_point_source_table(drb):
-    return 'ms_pointsource' + ('_drb' if drb else '')
+def get_point_source_table(drb, datasource=None):
+    if datasource:
+        return settings.POINT_SOURCES[datasource]['table']
+    else:
+        return 'ms_pointsource' + ('_drb' if drb else '')
 
 
-def point_source_discharge(geom, area, drb=False):
+def point_source_discharge(geom, area, drb=False, datasource=None):
     """
     Given a geometry and its area in square meters, returns three lists,
     each with 12 values, one for each month, containing the Nitrogen Load (in
@@ -375,7 +378,7 @@ def point_source_discharge(geom, area, drb=False):
     If drb is true (meaning the AOI is within the Delaware River Basin),
     this uses the ms_pointsource_drb table.
     """
-    table_name = get_point_source_table(drb)
+    table_name = get_point_source_table(drb, datasource)
     sql = f'''
           SELECT SUM(mgd) AS mg_d,
                  SUM(kgn_yr) / 12 AS kgn_month,
