@@ -79,11 +79,11 @@ def projects(request):
             # Initialize weather simulations for GWLFE projects if not given
             if (
                 serializer.validated_data.get('model_package') == Project.GWLFE
-                and not serializer.validated_data['weather_simulations']
+                and not serializer.validated_data.get('weather_simulations')
             ):
                 serializer.validated_data['weather_simulations'] = \
                     get_available_simulations_for_aoi(
-                        serializer.validated_data['area_of_interest'])
+                        serializer.validated_data.get('area_of_interest'))
 
             serializer.save()
 
