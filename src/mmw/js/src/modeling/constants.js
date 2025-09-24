@@ -53,10 +53,4 @@ module.exports = {
             in_drb: true,
         },
     ],
-    // In sync with apps.modeling.models.POINTSOURCE_CHOICES
-    PointSourceType: {
-        conus: 'conus',
-        drb: 'drb',
-        pa: 'pa',
-    },
 };

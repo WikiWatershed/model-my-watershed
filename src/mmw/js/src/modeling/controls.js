@@ -577,6 +577,7 @@ var GwlfeSettingsView = ControlView.extend({
                                  .findWhere({ active: true });
 
         entryViews.showSettingsModal(
+            App.currentProject,
             this.model.get('controlDisplayName'),
             this.model.get('dataModel'),
             currentScenario.get('modifications'),

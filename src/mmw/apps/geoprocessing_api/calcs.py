@@ -231,7 +231,7 @@ def point_source_pollution(geojson, datasource=None):
             point_source_results = []
 
     return {
-        'displayName': f'Point Source ({datasource.upper()})'
+        'displayName': settings.POINT_SOURCES[datasource]['description']
         if datasource else 'Point Source',
         'name': f'pointsource_{datasource}'
         if datasource else 'pointsource',

@@ -1531,7 +1531,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
         var title = 'Discharge Monitoring Report annual averages',
             source = 'EPA NPDES',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Additional Data Layers</a>',
-            associatedLayerCodes = ['pointsource'],
+            associatedLayerCodes = [],
             avgRowHeight = 30,  // Most rows are between 2-3 lines, 12px per line
             minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 6),

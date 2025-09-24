@@ -87,7 +87,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
                   'inputmod_hash', 'modifications', 'modification_hash',
                   'aoi_census', 'modification_censuses', 'results',
                   'created_at', 'modified_at', 'weather_type',
-                  'weather_simulation', 'weather_custom', 'pointsource_type')
+                  'weather_simulation', 'weather_custom')
         read_only_fields = ('weather_custom',)
 
     inputs = JsonField()

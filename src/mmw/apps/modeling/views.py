@@ -73,18 +73,18 @@ def projects(request):
     elif request.method == 'POST':
         data = request.data.copy()
 
-        # Initialize weather simulations for GWLFE projects
-        if data.get('model_package') == Project.GWLFE and \
-           data.get('area_of_interest'):
-            try:
-                data['weather_simulations'] = \
-                    get_available_simulations_for_aoi(data['area_of_interest'])
-            except Exception:
-                data['weather_simulations'] = WeatherType.simulation_groups
-
         serializer = ProjectUpdateSerializer(data=data,
                                              context={'request': request})
         if serializer.is_valid():
+            # Initialize weather simulations for GWLFE projects if not given
+            if (
+                serializer.validated_data.get('model_package') == Project.GWLFE
+                and not serializer.validated_data['weather_simulations']
+            ):
+                serializer.validated_data['weather_simulations'] = \
+                    get_available_simulations_for_aoi(
+                        serializer.validated_data['area_of_interest'])
+
             serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -100,7 +100,7 @@ def weather_update_sql(stations_list, simulation_key):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('modeling', '0045_initialize_pointsource_type_for_scenarios'),
+        ('modeling', '0043_remove_sedaadjust_from_tr55_scenarios'),
     ]
 
     operations = [

@@ -438,7 +438,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             tasks: [
                 {
                     name: "pointsource_drb",
-                    displayName: "Delaware River Basin Point Source Data (NPDES)",
+                    displayName: "Updated Data from DRBC",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
                     taskName: "analyze/pointsource/drb",
@@ -446,7 +446,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                 },
                 {
                     name: "pointsource_pa",
-                    displayName: "Pennsylvania Point Source Data (NPDES)",
+                    displayName: "Updated PA Data (PADEP)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
                     taskName: "analyze/pointsource/pa",
@@ -455,7 +455,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                 },
                 {
                     name: "pointsource_conus",
-                    displayName: "Continental US Point Source Data (NPDES)",
+                    displayName: "National EPA Data (NPDES)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
                     taskName: "analyze/pointsource/conus",
