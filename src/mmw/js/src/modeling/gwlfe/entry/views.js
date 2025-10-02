@@ -5,7 +5,7 @@ var _ = require('lodash'),
     modalViews = require('../../../core/modals/views'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
-    round = require('../../../core/utils').round,
+    coreUtils = require('../../../core/utils'),
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
     GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
     GwlfeModificationModel = require('../../models').GwlfeModificationModel,
@@ -22,6 +22,8 @@ var _ = require('lodash'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     tripletSectionTmpl = require('./templates/tripletSection.html'),
     tripletTabContentTmpl = require('./templates/tripletTabContent.html');
+
+var round = coreUtils.round;
 
 var LandCoverModal = modalViews.ModalBaseView.extend({
     template: landCoverModalTmpl,
@@ -536,23 +538,27 @@ function showSettingsModal(project, title, dataModel, modifications, addModifica
         wasteWaterMod = modifications.findWhere({ modKey: 'entry_waste_water' }),
         wasteWaterPreset = wasteWaterMod && wasteWaterMod.get('userInput').entry_waste_water_preset,
         getPointSourcePresets = function() {
-            if (project.isNew()) return null;
-            if (!(project.get('in_drb') || project.get('in_pa'))) return null;
+            var isNew = project.isNew(),
+                aoi = project.get('area_of_interest'),
+                in_drb = isNew ? coreUtils.isInDrb(aoi) : project.get('in_drb'),
+                in_pa = isNew ? coreUtils.isInPAStrict(aoi) : project.get('in_pa');
+
+            if (!(in_drb || in_pa)) return null;
 
             var presets = [{
                 name: 'conus',
                 label: 'National EPA Data (NPDES)',
-                default: !project.get('in_drb'),
+                default: !in_drb,
             }];
 
-            if (project.get('in_pa')) {
+            if (in_pa) {
                 presets.push({
                     name: 'pa',
                     label: 'Updated PA Data (PADEP)',
                 });
             }
 
-            if (project.get('in_drb')) {
+            if (in_drb) {
                 presets.push({
                     name: 'drb',
                     label: 'Updated Data from DRBC',
