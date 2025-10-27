@@ -4,7 +4,8 @@ EC2_INSTANCE_TYPES = [
     't2.small',
     't2.medium',
     't2.large',
-    'r4.large'
+    'r4.large',
+    'r6a.large',
 ]
 
 RDS_INSTANCE_TYPES = [
