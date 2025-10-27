@@ -197,7 +197,7 @@ class DataPlane(StackNode):
             filters = {'name':
                        'ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*',
                        'architecture': 'x86_64',
-                       'block-device-mapping.volume-type': 'gp2',
+                       'block-device-mapping.volume-type': 'gp3',
                        'root-device-type': 'ebs',
                        'virtualization-type': 'hvm'}
 
@@ -302,7 +302,7 @@ class DataPlane(StackNode):
             MultiAZ=Ref(self.rds_multi_az),
             PreferredBackupWindow='04:00-04:30',  # 12:00AM-12:30AM ET
             PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
-            StorageType='gp2',
+            StorageType='gp3',
             VPCSecurityGroups=[Ref(rds_security_group)],
             Tags=self.get_tags(Name=rds_database_name)
         ))
