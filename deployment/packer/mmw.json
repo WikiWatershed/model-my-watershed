@@ -71,7 +71,7 @@
                 {
                     "device_name": "/dev/sdf",
                     "snapshot_id": "snap-0211cbbff8a81266f",
-                    "volume_type": "gp3",
+                    "volume_type": "sc1",
                     "delete_on_termination": true
                 }
             ],

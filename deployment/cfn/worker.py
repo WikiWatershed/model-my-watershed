@@ -457,7 +457,7 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: |\n',
-                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2\n',  # NOQA
+                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail\t0 2\n',  # NOQA
                 '\n',
                 'rsyslog:\n',
                 '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
