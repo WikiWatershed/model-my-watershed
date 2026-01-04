@@ -121,4 +121,4 @@ def destroy_stacks(mmw_config, aws_profile, **kwargs):
     color_tag = ('StackColor', stack_color.capitalize())
 
     [stack.delete() for stack in cfn_conn.describe_stacks()
-        if color_tag in stack.tags.items()]
+        if color_tag in dict(stack.tags).items()]
