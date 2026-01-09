@@ -10,7 +10,7 @@ from cfn.tile_delivery_network import TileDeliveryNetwork
 from cfn.worker import Worker
 from cfn.public_hosted_zone import PublicHostedZone
 
-from boto import cloudformation as cfn
+import boto3
 
 import configparser
 import sys
@@ -117,8 +117,13 @@ def destroy_stacks(mmw_config, aws_profile, **kwargs):
     region = mmw_config['Region']
     stack_color = kwargs['stack_color']
 
-    cfn_conn = cfn.connect_to_region(region, profile_name=aws_profile)
-    color_tag = ('StackColor', stack_color.capitalize())
+    session = boto3.Session(profile_name=aws_profile, region_name=region)
+    cfn_client = session.client('cloudformation')
 
-    [stack.delete() for stack in cfn_conn.describe_stacks()
-        if color_tag in dict(stack.tags).items()]
+    response = cfn_client.describe_stacks()
+
+    for stack in response['Stacks']:
+        tags = {tag['Key']: tag['Value'] for tag in stack.get('Tags', [])}
+        if tags.get('StackColor') == stack_color.capitalize():
+            cfn_client.delete_stack(StackName=stack['StackName'])
+            print(f'[DEBUG] {stack["StackName"]} {stack["StackStatus"]}')

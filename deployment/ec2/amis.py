@@ -1,6 +1,6 @@
-"""Helper functions to handle EC2 related operations with Boto"""
+"""Helper functions to handle EC2 related operations with Boto3"""
 
-import boto
+import boto3
 import logging
 
 
@@ -15,14 +15,18 @@ MACHINE_TYPE_MAPPING = {
 }
 
 
-def _prune_ami(ami):
-    """Actually deregister AMI and its associated snapshot"""
-    LOGGER.info('Identified that [%s] is eligible to be pruned..', ami.id)
+def _prune_ami(ec2_client, ami_id, snapshot_ids):
+    """Actually deregister AMI and its associated snapshots"""
+    LOGGER.info('Identified that [%s] is eligible to be pruned..', ami_id)
 
-    ami.deregister(delete_snapshot=True)
+    ec2_client.deregister_image(ImageId=ami_id)
+    
+    for snapshot_id in snapshot_ids:
+        ec2_client.delete_snapshot(SnapshotId=snapshot_id)
+        LOGGER.info('Deleted snapshot [%s]', snapshot_id)
 
-    LOGGER.info('Deregistered [%s] and snapshot [%s]..', ami.id,
-                ami.block_device_mapping['/dev/sda1'].snapshot_id)
+    LOGGER.info('Deregistered [%s] and %d snapshot(s)',
+                ami_id, len(snapshot_ids))
 
 
 def prune(mmw_config, machine_types, keep, aws_profile):
@@ -36,15 +40,33 @@ def prune(mmw_config, machine_types, keep, aws_profile):
     """
     stack_type = mmw_config['StackType']
 
-    conn = boto.connect_ec2(profile_name=aws_profile)
+    session = boto3.Session(profile_name=aws_profile)
+    ec2_client = session.client('ec2')
+    
     for machine_type in machine_types:
-        images = conn.get_all_images(owners='self', filters={
-            'tag:Service': MACHINE_TYPE_MAPPING[machine_type],
-            'tag:Environment': stack_type
-        })
+        response = ec2_client.describe_images(
+            Owners=['self'],
+            Filters=[
+                {'Name': 'tag:Service',
+                 'Values': [MACHINE_TYPE_MAPPING[machine_type]]},
+                {'Name': 'tag:Environment', 'Values': [stack_type]}
+            ]
+        )
+        images = response['Images']
 
         if len(images) > keep:
-            map(_prune_ami,
-                list(sorted(images, key=lambda i: i.creationDate))[0:len(images) - keep])  # NOQA
+            # Sort by creation date
+            sorted_images = sorted(images, key=lambda i: i['CreationDate'])
+            images_to_prune = sorted_images[0:len(images) - keep]
+            
+            for image in images_to_prune:
+                # Collect all snapshot IDs from all block device mappings
+                snapshot_ids = []
+                for bdm in image.get('BlockDeviceMappings', []):
+                    if 'Ebs' in bdm and bdm['Ebs'].get('SnapshotId'):
+                        snapshot_ids.append(bdm['Ebs']['SnapshotId'])
+                
+                if snapshot_ids:
+                    _prune_ami(ec2_client, image['ImageId'], snapshot_ids)
         else:
             LOGGER.info('No [%s] AMIs are eligible for pruning', machine_type)
