@@ -1,9 +1,12 @@
 EC2_INSTANCE_TYPES = [
     't3.micro',
+    't3a.micro',
     't2.micro',
+    't3a.small',
     't2.small',
     't2.medium',
     't2.large',
+    'r6a.large',
     'r4.large'
 ]
 
