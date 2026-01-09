@@ -1,4 +1,4 @@
-cryptography==3.2.1
+cryptography>=41.0.0
 ansible==2.9.27
 troposphere==2.4.9
 majorkirby==2.0.0
