@@ -1,6 +1,12 @@
 [Unit]
 Description=mmw-rwd
 After=network.target
+{% if ['development', 'test', 'packer'] | some_are_in(group_names) -%}
+# Mount dependency skipped for development/test/packer environments
+{% else -%}
+After=opt-rwd\x2ddata.mount
+Requires=opt-rwd\x2ddata.mount
+{% endif %}
 
 [Service]
 User=mmw
