@@ -14,6 +14,11 @@ MACHINE_TYPE_MAPPING = {
     'mmw-worker': 'Worker',
 }
 
+# Snapshot IDs that should never be deleted (e.g., source RWD data)
+PROTECTED_SNAPSHOTS = {
+    'snap-0211cbbff8a81266f',  # Source RWD data
+}
+
 
 def _prune_ami(ec2_client, ami_id, snapshot_ids):
     """Actually deregister AMI and its associated snapshots"""
@@ -64,9 +69,14 @@ def prune(mmw_config, machine_types, keep, aws_profile):
                 snapshot_ids = []
                 for bdm in image.get('BlockDeviceMappings', []):
                     if 'Ebs' in bdm and bdm['Ebs'].get('SnapshotId'):
-                        snapshot_ids.append(bdm['Ebs']['SnapshotId'])
-                
+                        snap_id = bdm['Ebs']['SnapshotId']
+                        # Skip protected snapshots
+                        if snap_id not in PROTECTED_SNAPSHOTS:
+                            snapshot_ids.append(snap_id)
+
                 if snapshot_ids:
+                    LOGGER.info(f'Skipping protected snapshot [{snap_id}]'
+                                f' for AMI [{image["ImageId"]}]')
                     _prune_ami(ec2_client, image['ImageId'], snapshot_ids)
         else:
             LOGGER.info('No [%s] AMIs are eligible for pruning', machine_type)
