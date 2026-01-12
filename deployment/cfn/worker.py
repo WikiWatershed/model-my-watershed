@@ -453,11 +453,21 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.srat_catchment_api_key), '\n',
-                '  - path: /etc/fstab.rwd-data\n',
-                '    permissions: 0440\n',
-                '    owner: root:mmw\n',
+                '  - path: /usr/local/bin/mount-rwd-volume.sh\n',
+                '    permissions: 0755\n',
+                '    owner: root:root\n',
                 '    content: |\n',
-                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail\t0 2\n',  # NOQA
+                '      #!/bin/bash\n',
+                '      # Find the NVMe device for /dev/sdf\n',
+                '      # On NVMe instances, /dev/sdf appears as /dev/nvme[0-9]n1\n',
+                '      RWD_DEVICE=$(lsblk -o NAME,SIZE | grep "512G" | awk \'{print "/dev/"$1}\' | head -1)\n',
+                '      if [ -z "$RWD_DEVICE" ]; then\n',
+                '        echo "Error: Could not find 512GB RWD volume" >&2\n',
+                '        exit 1\n',
+                '      fi\n',
+                '      echo "$RWD_DEVICE /opt/rwd-data ext4 defaults,nofail 0 2" >> /etc/fstab\n',
+                '      mount "$RWD_DEVICE" /opt/rwd-data\n',
+                '      exit 0\n',
                 '\n',
                 'rsyslog:\n',
                 '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
@@ -483,8 +493,8 @@ class Worker(StackNode):
                 'rsyslog_filename: 22-mmw-papertrail.conf\n',
                 '\n',
                 'runcmd:\n',
-                '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
-                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && docker restart mmw_mmw-rwd_1\n',  # NOQA
+                '  - /usr/local/bin/mount-rwd-volume.sh\n',
+                '  - docker restart mmw_mmw-rwd_1\n',
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_dns_records(self, worker_lb):
