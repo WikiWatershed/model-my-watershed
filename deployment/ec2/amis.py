@@ -34,7 +34,7 @@ def _prune_ami(ec2_client, ami_id, snapshot_ids):
                 ami_id, len(snapshot_ids))
 
 
-def prune(mmw_config, machine_types, keep, aws_profile):
+def prune(mmw_config, machine_types, keep, aws_profile, dry_run=False):
     """Filter owned AMIs by machine type, environment, and count
 
     Args:
@@ -42,6 +42,7 @@ def prune(mmw_config, machine_types, keep, aws_profile):
       machine_types (list): list of machine types to prune
       keep (int): number of images of this machine type to keep
       aws_profile (str): aws profile name to use for authentication
+      dry_run (bool): if True, list AMIs without deleting them
     """
     stack_type = mmw_config['StackType']
 
@@ -64,6 +65,10 @@ def prune(mmw_config, machine_types, keep, aws_profile):
             sorted_images = sorted(images, key=lambda i: i['CreationDate'])
             images_to_prune = sorted_images[0:len(images) - keep]
             
+            if dry_run:
+                LOGGER.info('[DRY RUN] Would prune %d [%s] AMI(s):',
+                           len(images_to_prune), machine_type)
+            
             for image in images_to_prune:
                 # Collect all snapshot IDs from all block device mappings
                 snapshot_ids = []
@@ -75,8 +80,14 @@ def prune(mmw_config, machine_types, keep, aws_profile):
                             snapshot_ids.append(snap_id)
 
                 if snapshot_ids:
-                    LOGGER.info(f'Skipping protected snapshot [{snap_id}]'
-                                f' for AMI [{image["ImageId"]}]')
-                    _prune_ami(ec2_client, image['ImageId'], snapshot_ids)
+                    if dry_run:
+                        LOGGER.info('[DRY RUN] AMI: %s (created: %s) '
+                                    'with %d snapshot(s): %s',
+                                   image['ImageId'], image['CreationDate'],
+                                   len(snapshot_ids), ', '.join(snapshot_ids))
+                    else:
+                        LOGGER.info(f'Skipping protected snapshot [{snap_id}]'
+                                    f' for AMI [{image["ImageId"]}]')
+                        _prune_ami(ec2_client, image['ImageId'], snapshot_ids)
         else:
             LOGGER.info('No [%s] AMIs are eligible for pruning', machine_type)
