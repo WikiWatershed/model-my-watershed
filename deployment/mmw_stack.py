@@ -24,8 +24,8 @@ def create_ami(mmw_config, aws_profile, machine_type, **kwargs):
     run_packer(mmw_config, machine_type, aws_profile=aws_profile)
 
 
-def prune_amis(mmw_config, aws_profile, machine_type, keep, **kwargs):
-    prune(mmw_config, machine_type, keep, aws_profile=aws_profile)
+def prune_amis(mmw_config, aws_profile, machine_type, keep, dry_run, **kwargs):
+    prune(mmw_config, machine_type, keep, aws_profile=aws_profile, dry_run=dry_run)
 
 
 def main():
@@ -95,6 +95,10 @@ def main():
                                help='AMI type to prune')
     mmw_prune_ami.add_argument('--keep', type=int, default=10,
                                help='Number of AMIs to keep')
+    mmw_prune_ami.add_argument('--dry-run', action='store_true',
+                               default=False,
+                               help='List AMIs that would be deleted '
+                                    'without actually deleting them')
     mmw_prune_ami.set_defaults(func=prune_amis)
 
     args = parser.parse_args()

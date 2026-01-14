@@ -1,5 +1,4 @@
-from boto import s3, route53 as r53
-from boto.s3.connection import OrdinaryCallingFormat
+import boto3
 
 from majorkirby import CustomActionNode
 
@@ -36,34 +35,58 @@ class PublicHostedZone(CustomActionNode):
         app_lb_hosted_zone_id = self.get_input(
             'AppServerLoadBalancerHostedZoneNameID')
 
-        route53_conn = r53.connect_to_region(region,
-                                             profile_name=self.aws_profile)
+        session = boto3.Session(profile_name=self.aws_profile,
+                                region_name=region)
+        route53_client = session.client('route53')
+        s3_client = session.client('s3')
 
-        public_hosted_zone = route53_conn.get_zone(hosted_zone_name)
-        record_sets = r53.record.ResourceRecordSets(route53_conn,
-                                                    public_hosted_zone.id)
-        record_sets.add_change('UPSERT', hosted_zone_name, 'A',
-                               alias_hosted_zone_id=app_lb_hosted_zone_id,
-                               alias_dns_name=app_lb_endpoint,
-                               alias_evaluate_target_health=True,
-                               identifier='Primary',
-                               failover='PRIMARY')
-        record_sets.commit()
+        # Get hosted zone ID
+        zones_response = route53_client.list_hosted_zones_by_name(
+            DNSName=hosted_zone_name
+        )
+        hosted_zone_id = None
+        for zone in zones_response['HostedZones']:
+            if zone['Name'].rstrip('.') == hosted_zone_name.rstrip('.'):
+                hosted_zone_id = zone['Id']
+                break
 
-        s3_conn = s3.connect_to_region(region,
-                                       profile_name=self.aws_profile,
-                                       calling_format=OrdinaryCallingFormat())
+        if hosted_zone_id:
+            # Create or update the alias record
+            route53_client.change_resource_record_sets(
+                HostedZoneId=hosted_zone_id,
+                ChangeBatch={
+                    'Changes': [{
+                        'Action': 'UPSERT',
+                        'ResourceRecordSet': {
+                            'Name': hosted_zone_name,
+                            'Type': 'A',
+                            'SetIdentifier': 'Primary',
+                            'Failover': 'PRIMARY',
+                            'AliasTarget': {
+                                'HostedZoneId': app_lb_hosted_zone_id,
+                                'DNSName': app_lb_endpoint,
+                                'EvaluateTargetHealth': True
+                            }
+                        }
+                    }]
+                }
+            )
 
-        bucket = s3_conn.get_bucket('tile-cache.{}'.format(hosted_zone_name))
-
-        rules = s3.website.RoutingRules()
-        rules.add_rule(s3.website.RoutingRule(
-            s3.website.Redirect(
-                protocol='https',
-                http_redirect_code=302,
-                hostname='{}-tiles.{}'.format(color.lower(),
-                                              hosted_zone_name)),
-            s3.website.Condition(http_error_code=404)))
-
-        bucket.configure_website(suffix='index.html', error_key='error.html',
-                                 routing_rules=rules)
+        # Configure S3 bucket website
+        bucket_name = 'tile-cache.{}'.format(hosted_zone_name)
+        website_config = {
+            'ErrorDocument': {'Key': 'error.html'},
+            'IndexDocument': {'Suffix': 'index.html'},
+            'RoutingRules': [{
+                'Condition': {'HttpErrorCodeReturnedEquals': '404'},
+                'Redirect': {
+                    'Protocol': 'https',
+                    'HostName': f'{color.lower()}-tiles.{hosted_zone_name}',
+                    'HttpRedirectCode': '302'
+                }
+            }]
+        }
+        s3_client.put_bucket_website(
+            Bucket=bucket_name,
+            WebsiteConfiguration=website_config
+        )

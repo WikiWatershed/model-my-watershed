@@ -1,4 +1,4 @@
-from boto import route53 as r53
+import boto3
 
 from majorkirby import CustomActionNode
 
@@ -24,23 +24,40 @@ class PrivateHostedZone(CustomActionNode):
 
     def action(self):
         region = self.get_input('Region')
-        conn = r53.connect_to_region(region, profile_name=self.aws_profile)
+        session = boto3.Session(profile_name=self.aws_profile,
+                                region_name=region)
+        route53_client = session.client('route53')
         comment = json.dumps(self.get_raw_tags())
 
-        hosted_zones = conn.get_all_hosted_zones()
+        # List all hosted zones
+        response = route53_client.list_hosted_zones()
+        hosted_zones = response.get('HostedZones', [])
 
-        for hosted_zone in hosted_zones['ListHostedZonesResponse']['HostedZones']:  # NOQA
-            if ('Comment' in hosted_zone['Config'] and
-                    hosted_zone['Config']['Comment'] == comment):
+        # Check if a matching hosted zone already exists
+        for hosted_zone in hosted_zones:
+            zone_config = hosted_zone.get('Config', {})
+            if zone_config.get('Comment') == comment:
                 self.stack_outputs = {
                     'PrivateHostedZoneId': hosted_zone['Id'].split('/')[-1]
                 }
                 return
 
-        hosted_zone = conn.create_hosted_zone(
-            '{}.'.format(self.get_input('PrivateHostedZoneName')),
-            comment=comment, private_zone=True, vpc_id=self.get_input('VpcId'),
-            vpc_region=region
+        # Create new private hosted zone
+        vpc_id = self.get_input('VpcId')
+        zone_name = '{}.'.format(self.get_input('PrivateHostedZoneName'))
+        
+        response = route53_client.create_hosted_zone(
+            Name=zone_name,
+            VPC={
+                'VPCRegion': region,
+                'VPCId': vpc_id
+            },
+            CallerReference=str(hash(comment)),
+            HostedZoneConfig={
+                'Comment': comment,
+                'PrivateZone': True
+            }
         )
-        hosted_zone_id = hosted_zone['CreateHostedZoneResponse']['HostedZone']['Id']  # NOQA
-        self.stack_outputs = {'PrivateHostedZoneId': hosted_zone_id.split('/')[-1]}  # NOQA
+        
+        hosted_zone_id = response['HostedZone']['Id'].split('/')[-1]
+        self.stack_outputs = {'PrivateHostedZoneId': hosted_zone_id}
