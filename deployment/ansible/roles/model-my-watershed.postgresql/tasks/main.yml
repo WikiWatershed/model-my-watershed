@@ -4,6 +4,11 @@
     name: acl
     state: present
 
+- name: Configure PostgreSQL
+  template: src=postgresql.conf.j2 dest=/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+  notify:
+    - Restart PostgreSQL
+
 - name: Create PostgreSQL super user
   become_user: postgres
   postgresql_user: name="{{ postgresql_username }}"
