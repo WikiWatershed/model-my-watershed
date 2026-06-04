@@ -1,0 +1,9 @@
+---
+postgresql_listen_addresses: localhost
+postgresql_data_directory: /var/lib/postgresql/{{ postgresql_version }}/main
+postgresql_max_connections: 100
+postgresql_shared_buffers: "128MB"
+postgresql_work_mem: "4MB"
+postgresql_log_autovacuum_min_duration: -1
+postgresql_log_min_duration_statement: -1
+postgresql_hba_mapping: []
