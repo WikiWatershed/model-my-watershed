@@ -649,3 +649,18 @@ def draw_drainage_area_stream(input):
         'area_of_interest': area_of_interest,
         'stream_segment': json.loads(segment.geojson),
     }
+
+
+@shared_task
+def wrap_in_survey(result):
+    """
+    Takes a result, and wraps it in a dict with a `survey` key
+
+    This is used to make results compatible with /analyze/ API, which always
+    wraps results in a `survey`.
+
+    Example:
+
+    wrap_in_survey({'a': 1, 'b': 2}) => {'survey': {'a': 1, 'b': 2}}
+    """
+    return {'survey': result}
