@@ -93,7 +93,7 @@ Execute the following command to reconcile the release branch:
 git flow release finish -p X.Y.Z
 ```
 
-## Remove Old Stack
+## Cleanup
 
 Lastly, use the following command to remove the now dark stack:
 
@@ -103,3 +103,16 @@ python3 mmw_stack.py remove-stacks --aws-profile mmw-prd \
                                    --mmw-profile production \
                                    --stack-color green
 ```
+
+Run this to prune old Production AMIs:
+
+```bash
+python3 mmw_stack.py prune-ami --aws-profile mmw-stg \
+                               --mmw-config-path default.yml \
+                               --mmw-profile production \
+                               --machine-type mmw-app mmw-tiler mmw-worker \
+                               --keep 5 \
+                               --dry-run
+```
+
+Run it again, without `--dry-run`, to actually delete AMIs and old snapshots.

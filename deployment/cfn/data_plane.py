@@ -302,7 +302,7 @@ class DataPlane(StackNode):
             MultiAZ=Ref(self.rds_multi_az),
             PreferredBackupWindow='04:00-04:30',  # 12:00AM-12:30AM ET
             PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
-            StorageType='gp2',
+            StorageType='gp3',
             VPCSecurityGroups=[Ref(rds_security_group)],
             Tags=self.get_tags(Name=rds_database_name)
         ))
