@@ -1,8 +1,10 @@
 import multiprocessing
 
 bind = "127.0.0.1:8000"
-workers = (2 * multiprocessing.cpu_count()) + 1
+workers = (1 * multiprocessing.cpu_count()) + 1
 timeout = 60
+max_requests = 1000
+max_requests_jitter = 100
 
 {% if ['development', 'test'] | some_are_in(group_names) -%}
 accesslog = "-"
