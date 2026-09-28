@@ -259,10 +259,13 @@ def trim_to_valid_length(basename, suffix):
 concord = ConcordService()
 
 
+def concord_redirect_uri(request):
+    return request.build_absolute_uri(reverse('user:concord_auth'))
+
+
 def concord_login(request):
-    redirect_uri = request.build_absolute_uri(reverse('user:concord_auth'))
     params = {
-        'redirect_uri': redirect_uri,
+        'redirect_uri': concord_redirect_uri(request),
         'state': request.GET.get('next', '/'),
         'response_type': 'code',
     }
@@ -279,7 +282,8 @@ def concord_auth(request):
         return redirect('/error/sso')
 
     try:
-        session = concord.get_session_from_code(code)
+        session = concord.get_session_from_code(code,
+                                                concord_redirect_uri(request))
         concord_user = session.get_user()
     except Exception as e:
         # Report OAuth error
