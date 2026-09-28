@@ -52,8 +52,13 @@ class SSOService(OAuth2Service):
             SessionClass
         )
 
-    def get_session_from_code(self, code):
+    def get_session_from_code(self, code, redirect_uri=None):
         data = {'code': code, 'grant_type': 'authorization_code'}
+        # OAuth 2.0 (RFC 6749 section 4.1.3) requires the token request to
+        # repeat the redirect_uri sent with the authorization request, and the
+        # Concord portal will start enforcing this.
+        if redirect_uri is not None:
+            data['redirect_uri'] = redirect_uri
 
         tokens = json.loads(self.get_raw_access_token(data=data).content)
 

@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
+from unittest import mock
+
 from django.test import LiveServerTestCase
-from django.test import (TestCase,
+from django.test import (SimpleTestCase,
+                         TestCase,
                          Client)
 from django.contrib.auth.models import User
 from django.urls import reverse
 from apps.user.views import trim_to_valid_length
 from apps.user.models import UserProfile
+from apps.user.sso import SSOService, SSOSession
 
 
 class TaskRunnerTestCase(LiveServerTestCase):
@@ -101,3 +105,37 @@ class UserProfileTestCase(TestCase):
                                    email='t@example.com',
                                    password='t')
         UserProfile.objects.create(user=user)
+
+
+class SSOServiceTestCase(SimpleTestCase):
+    config = {
+        'client_id': 'mmw',
+        'client_secret': 'secret',
+        'service_name': 'concord',
+        'base_url': 'https://learn.example.org/',
+        'access_token_url': '/oauth/token',
+        'authorize_url': '/auth/oauth_authorize',
+    }
+
+    def get_token_data(self, *args):
+        service = SSOService(self.config, SSOSession)
+        response = mock.Mock(content='{"access_token": "t"}')
+        with mock.patch.object(service, 'get_raw_access_token',
+                               return_value=response) as token_request, \
+                mock.patch.object(service, 'get_session'):
+            service.get_session_from_code(*args)
+        return token_request.call_args.kwargs['data']
+
+    def test_token_request_repeats_redirect_uri(self):
+        redirect_uri = 'https://mmw.example.org/user/concord/authenticate'
+        self.assertEqual(self.get_token_data('abc', redirect_uri), {
+            'code': 'abc',
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri,
+        })
+
+    def test_token_request_without_redirect_uri_is_unchanged(self):
+        self.assertEqual(self.get_token_data('abc'), {
+            'code': 'abc',
+            'grant_type': 'authorization_code',
+        })
